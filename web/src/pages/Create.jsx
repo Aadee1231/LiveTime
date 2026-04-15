@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { geocodeAddress } from '../lib/geocoding';
 
 export default function Create() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Create() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [geocodingStatus, setGeocodingStatus] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,6 +39,7 @@ export default function Create() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setGeocodingStatus('');
 
     if (!formData.title.trim() || !formData.location.trim() || !formData.description.trim()) {
       setError('Please fill in all required fields');
@@ -59,16 +62,32 @@ export default function Create() {
     setLoading(true);
 
     try {
+      setGeocodingStatus('Finding location on map...');
+      const geocodeResult = await geocodeAddress(formData.location.trim());
+      
+      if (!geocodeResult.success) {
+        setGeocodingStatus('⚠️ Could not find exact location - event will be created without map pin');
+      } else {
+        setGeocodingStatus('✓ Location found!');
+      }
+
+      const eventData = {
+        creator_id: user.id,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        location_address: formData.location.trim(),
+        start_time: startDate.toISOString(),
+        end_time: endDate.toISOString(),
+      };
+
+      if (geocodeResult.success) {
+        eventData.location_lat = geocodeResult.lat;
+        eventData.location_lng = geocodeResult.lng;
+      }
+
       const { error: insertError } = await supabase
         .from('events')
-        .insert({
-          creator_id: user.id,
-          title: formData.title.trim(),
-          description: formData.description.trim(),
-          location_address: formData.location.trim(),
-          start_time: startDate.toISOString(),
-          end_time: endDate.toISOString(),
-        });
+        .insert(eventData);
 
       if (insertError) throw insertError;
 
@@ -76,6 +95,7 @@ export default function Create() {
     } catch (err) {
       console.error('Error creating event:', err);
       setError(err.message || 'Failed to create event. Please try again.');
+      setGeocodingStatus('');
     } finally {
       setLoading(false);
     }
@@ -85,6 +105,7 @@ export default function Create() {
     <div className="page">
       <h1>Create Event</h1>
       {error && <div className="error-message">{error}</div>}
+      {geocodingStatus && <div className="info-message">{geocodingStatus}</div>}
       <form className="create-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="title">Event Title</label>
