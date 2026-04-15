@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import EventCard from '../components/EventCard';
+import MapView from '../components/MapView';
 
 export default function Home() {
   const [events, setEvents] = useState([]);
@@ -38,9 +39,13 @@ export default function Home() {
   return (
     <div className="home-page">
       <div className="map-container">
-        <div className="map-placeholder">
-          <p>🗺️ Map View</p>
-        </div>
+        {loading ? (
+          <div className="map-placeholder">
+            <p>Loading map...</p>
+          </div>
+        ) : (
+          <MapView events={events} />
+        )}
       </div>
       
       <div className="event-pins">
@@ -56,7 +61,16 @@ export default function Home() {
         ) : (
           <div className="pins-grid">
             {events.map(event => (
-              <EventCard key={event.id} event={event} variant="pin" />
+              <EventCard 
+                key={event.id}
+                eventId={event.id}
+                title={event.title}
+                description={event.description}
+                locationAddress={event.location_address}
+                startTime={event.start_time}
+                endTime={event.end_time}
+                variant="compact"
+              />
             ))}
           </div>
         )}

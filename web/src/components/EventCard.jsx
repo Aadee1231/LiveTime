@@ -1,50 +1,58 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useEventAttendance } from '../hooks/useEventAttendance';
 
-export default function EventCard({ event, variant = 'feed' }) {
+export default function EventCard({
+  eventId,
+  title,
+  description,
+  locationAddress,
+  startTime,
+  endTime,
+  variant = 'feed'
+}) {
   const { user } = useAuth();
   const { attendees, isGoing, toggleAttendance, attendeeCount } = useEventAttendance(
-    event.id,
+    eventId,
     user?.id
   );
 
-  const formatEventTime = (startTime, endTime) => {
-    const start = new Date(startTime);
-    const end = new Date(endTime);
+  const formatEventTime = (start, end) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
     
-    if (variant === 'pin') {
-      const startTimeStr = start.toLocaleTimeString('en-US', { 
+    if (variant === 'compact') {
+      const startTimeStr = startDate.toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit' 
       });
       
-      const endTimeStr = end.toLocaleTimeString('en-US', { 
+      const endTimeStr = endDate.toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit' 
       });
       
       return `${startTimeStr} - ${endTimeStr}`;
-    } else {
-      const dateStr = start.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-      
-      const startTimeStr = start.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit' 
-      });
-      
-      const endTimeStr = end.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit' 
-      });
-      
-      return `${dateStr} • ${startTimeStr} - ${endTimeStr}`;
     }
+    
+    const dateStr = startDate.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    const startTimeStr = startDate.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit' 
+    });
+    
+    const endTimeStr = endDate.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit' 
+    });
+    
+    return `${dateStr} • ${startTimeStr} - ${endTimeStr}`;
   };
 
-  const truncateDescription = (text, maxLength = 80) => {
+  const truncateText = (text, maxLength = 80) => {
     if (!text || text.length <= maxLength) return text;
     return text.substring(0, maxLength).trim() + '...';
   };
@@ -61,41 +69,53 @@ export default function EventCard({ event, variant = 'feed' }) {
   const visibleAttendees = attendees.slice(0, 5);
   const remainingCount = Math.max(0, attendeeCount - 5);
 
-  if (variant === 'pin') {
+  const renderAttendeeBubbles = () => (
+    <div className="attendee-bubbles">
+      {visibleAttendees.map((attendee) => (
+        <div 
+          key={attendee.id} 
+          className="attendee-bubble" 
+          title={attendee.profiles?.full_name || 'User'}
+        >
+          {attendee.profiles?.avatar_url ? (
+            <img 
+              src={attendee.profiles.avatar_url} 
+              alt={attendee.profiles.full_name} 
+            />
+          ) : (
+            <span>{getInitials(attendee.profiles?.full_name)}</span>
+          )}
+        </div>
+      ))}
+      {remainingCount > 0 && (
+        <div className="attendee-bubble more-count">
+          <span>+{remainingCount}</span>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderAttendanceButton = () => (
+    <button 
+      className={`attendance-btn ${isGoing ? 'going' : ''}`}
+      onClick={toggleAttendance}
+      disabled={!user}
+    >
+      {isGoing ? 'Going' : "I'm Going"}
+    </button>
+  );
+
+  if (variant === 'compact') {
     return (
       <div className="event-pin">
-        <h3>{event.title}</h3>
-        <p className="location">📍 {event.location_address}</p>
-        <p className="description">{truncateDescription(event.description)}</p>
-        <p className="time">
-          {formatEventTime(event.start_time, event.end_time)}
-        </p>
+        <h3>{title}</h3>
+        <p className="location">📍 {locationAddress}</p>
+        <p className="description">{truncateText(description)}</p>
+        <p className="time">{formatEventTime(startTime, endTime)}</p>
         
         <div className="event-attendees">
-          <div className="attendee-bubbles">
-            {visibleAttendees.map((attendee) => (
-              <div key={attendee.id} className="attendee-bubble" title={attendee.profiles?.full_name || 'User'}>
-                {attendee.profiles?.avatar_url ? (
-                  <img src={attendee.profiles.avatar_url} alt={attendee.profiles.full_name} />
-                ) : (
-                  <span>{getInitials(attendee.profiles?.full_name)}</span>
-                )}
-              </div>
-            ))}
-            {remainingCount > 0 && (
-              <div className="attendee-bubble more-count">
-                <span>+{remainingCount}</span>
-              </div>
-            )}
-          </div>
-          
-          <button 
-            className={`attendance-btn ${isGoing ? 'going' : ''}`}
-            onClick={toggleAttendance}
-            disabled={!user}
-          >
-            {isGoing ? 'Going' : "I'm Going"}
-          </button>
+          {renderAttendeeBubbles()}
+          {renderAttendanceButton()}
         </div>
         
         {attendeeCount > 0 && (
@@ -108,44 +128,21 @@ export default function EventCard({ event, variant = 'feed' }) {
   return (
     <div className="event-card">
       <div className="event-header">
-        <h3>{event.title}</h3>
+        <h3>{title}</h3>
         <span className="event-time">
-          {formatEventTime(event.start_time, event.end_time)}
+          {formatEventTime(startTime, endTime)}
         </span>
       </div>
-      <p className="event-description">{event.description}</p>
+      <p className="event-description">{description}</p>
       <div className="event-footer">
-        <span className="location">📍 {event.location_address}</span>
+        <span className="location">📍 {locationAddress}</span>
         
         <div className="event-attendees">
-          <div className="attendee-bubbles">
-            {visibleAttendees.map((attendee) => (
-              <div key={attendee.id} className="attendee-bubble" title={attendee.profiles?.full_name || 'User'}>
-                {attendee.profiles?.avatar_url ? (
-                  <img src={attendee.profiles.avatar_url} alt={attendee.profiles.full_name} />
-                ) : (
-                  <span>{getInitials(attendee.profiles?.full_name)}</span>
-                )}
-              </div>
-            ))}
-            {remainingCount > 0 && (
-              <div className="attendee-bubble more-count">
-                <span>+{remainingCount}</span>
-              </div>
-            )}
-          </div>
-          
+          {renderAttendeeBubbles()}
           {attendeeCount > 0 && (
             <span className="attendee-count">{attendeeCount} going</span>
           )}
-          
-          <button 
-            className={`attendance-btn ${isGoing ? 'going' : ''}`}
-            onClick={toggleAttendance}
-            disabled={!user}
-          >
-            {isGoing ? 'Going' : "I'm Going"}
-          </button>
+          {renderAttendanceButton()}
         </div>
       </div>
     </div>

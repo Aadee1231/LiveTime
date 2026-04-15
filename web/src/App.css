@@ -504,3 +504,40 @@
 .event-pin .attendee-count {
   margin-top: 0.5rem;
 }
+
+.map-popup {
+  min-width: 200px;
+  max-width: 250px;
+}
+
+.map-popup h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-h);
+}
+
+.map-popup p {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.popup-time {
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.popup-description {
+  line-height: 1.4;
+  margin: 0.5rem 0;
+}
+
+.popup-location {
+  font-size: 0.8rem;
+}
+
+.popup-attendees {
+  font-weight: 500;
+  color: var(--accent);
+  margin-top: 0.5rem;
+}

@@ -64,7 +64,16 @@ export default function Feed() {
       ) : (
         <div className="feed-container">
           {events.map(event => (
-            <EventCard key={event.id} event={event} variant="feed" />
+            <EventCard 
+              key={event.id}
+              eventId={event.id}
+              title={event.title}
+              description={event.description}
+              locationAddress={event.location_address}
+              startTime={event.start_time}
+              endTime={event.end_time}
+              variant="feed"
+            />
           ))}
         </div>
       )}
