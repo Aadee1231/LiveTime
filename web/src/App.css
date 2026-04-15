@@ -409,3 +409,98 @@
   font-size: 1.2rem;
   color: var(--text);
 }
+
+.event-attendees {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.attendee-bubbles {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.attendee-bubble {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 2px solid var(--bg);
+  margin-left: -8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.attendee-bubble:first-child {
+  margin-left: 0;
+}
+
+.attendee-bubble img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attendee-bubble.more-count {
+  background: var(--code-bg);
+  color: var(--text-h);
+  border-color: var(--border);
+  font-size: 0.7rem;
+}
+
+.attendee-count {
+  font-size: 0.85rem;
+  color: var(--text);
+  margin: 0;
+}
+
+.attendance-btn {
+  padding: 0.5rem 1rem;
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.attendance-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: white;
+}
+
+.attendance-btn.going {
+  background: var(--accent);
+  color: white;
+}
+
+.attendance-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.event-footer .event-attendees {
+  margin-top: 0;
+  margin-left: auto;
+}
+
+.event-pin .event-attendees {
+  margin-top: 1rem;
+}
+
+.event-pin .attendee-count {
+  margin-top: 0.5rem;
+}

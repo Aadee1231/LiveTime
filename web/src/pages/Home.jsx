@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import EventCard from '../components/EventCard';
 
 export default function Home() {
   const [events, setEvents] = useState([]);
@@ -34,28 +35,6 @@ export default function Home() {
     }
   };
 
-  const formatEventTime = (startTime, endTime) => {
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    
-    const startTimeStr = start.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit' 
-    });
-    
-    const endTimeStr = end.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit' 
-    });
-    
-    return `${startTimeStr} - ${endTimeStr}`;
-  };
-
-  const truncateDescription = (text, maxLength = 80) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength).trim() + '...';
-  };
-
   return (
     <div className="home-page">
       <div className="map-container">
@@ -77,14 +56,7 @@ export default function Home() {
         ) : (
           <div className="pins-grid">
             {events.map(event => (
-              <div key={event.id} className="event-pin">
-                <h3>{event.title}</h3>
-                <p className="location">📍 {event.location_address}</p>
-                <p className="description">{truncateDescription(event.description)}</p>
-                <p className="time">
-                  {formatEventTime(event.start_time, event.end_time)}
-                </p>
-              </div>
+              <EventCard key={event.id} event={event} variant="pin" />
             ))}
           </div>
         )}

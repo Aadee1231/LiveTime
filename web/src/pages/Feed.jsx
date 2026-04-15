@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import EventCard from '../components/EventCard';
 
 export default function Feed() {
   const [events, setEvents] = useState([]);
@@ -34,28 +35,6 @@ export default function Feed() {
     }
   };
 
-  const formatEventTime = (startTime, endTime) => {
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    
-    const dateStr = start.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
-    
-    const startTimeStr = start.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit' 
-    });
-    
-    const endTimeStr = end.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit' 
-    });
-    
-    return `${dateStr} • ${startTimeStr} - ${endTimeStr}`;
-  };
-
   if (loading) {
     return (
       <div className="page">
@@ -85,18 +64,7 @@ export default function Feed() {
       ) : (
         <div className="feed-container">
           {events.map(event => (
-            <div key={event.id} className="event-card">
-              <div className="event-header">
-                <h3>{event.title}</h3>
-                <span className="event-time">
-                  {formatEventTime(event.start_time, event.end_time)}
-                </span>
-              </div>
-              <p className="event-description">{event.description}</p>
-              <div className="event-footer">
-                <span className="location">📍 {event.location_address}</span>
-              </div>
-            </div>
+            <EventCard key={event.id} event={event} variant="feed" />
           ))}
         </div>
       )}
