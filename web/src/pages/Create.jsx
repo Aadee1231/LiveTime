@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { geocodeAddress, reverseGeocode } from '../lib/geocoding';
+import { uploadEventImage } from '../lib/storage';
 import LocationPicker from '../components/LocationPicker';
+import ImageUpload from '../components/ImageUpload';
 
 export default function Create() {
   const navigate = useNavigate();
@@ -14,10 +16,10 @@ export default function Create() {
     start_time: '',
     end_time: '',
     description: '',
-    club_name: '',
-    image_url: ''
+    club_name: ''
   });
   const [coordinates, setCoordinates] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -42,6 +44,10 @@ export default function Create() {
     }
   };
 
+  const handleImageSelect = (file) => {
+    setImageFile(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -63,6 +69,19 @@ export default function Create() {
     setLoading(true);
 
     try {
+      let imageUrl = null;
+
+      if (imageFile) {
+        const uploadResult = await uploadEventImage(imageFile, user.id);
+        if (uploadResult.success) {
+          imageUrl = uploadResult.url;
+        } else {
+          setError(`Image upload failed: ${uploadResult.error}`);
+          setLoading(false);
+          return;
+        }
+      }
+
       const eventData = {
         creator_id: user.id,
         title: formData.title.trim(),
@@ -87,8 +106,8 @@ export default function Create() {
         eventData.club_name = formData.club_name.trim();
       }
 
-      if (formData.image_url.trim()) {
-        eventData.image_url = formData.image_url.trim();
+      if (imageUrl) {
+        eventData.image_url = imageUrl;
       }
 
       const { error: insertError } = await supabase
@@ -201,16 +220,9 @@ export default function Create() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="image_url">Event Flyer/Image</label>
-          <input
-            type="url"
-            id="image_url"
-            name="image_url"
-            value={formData.image_url}
-            onChange={handleChange}
-            placeholder="Image URL (optional - upload coming soon)"
-          />
-          <p className="input-hint">Paste a link to your event flyer or image</p>
+          <label htmlFor="image-upload">Event Flyer/Image</label>
+          <ImageUpload onImageSelect={handleImageSelect} />
+          <p className="input-hint">Upload a flyer or image (max 5MB, optional)</p>
         </div>
 
         <button type="submit" className="submit-btn" disabled={loading}>
