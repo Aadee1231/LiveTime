@@ -576,3 +576,44 @@
   color: var(--accent);
   margin-top: 0.5rem;
 }
+
+.location-picker {
+  margin-top: 0.75rem;
+}
+
+.map-toggle-btn {
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: var(--sans);
+}
+
+.map-toggle-btn:hover {
+  background: var(--code-bg);
+  border-color: var(--accent);
+}
+
+.map-picker-container {
+  margin-top: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.map-hint {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--code-bg);
+  font-size: 0.8rem;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.map-picker-container .leaflet-container {
+  border-radius: 0;
+}

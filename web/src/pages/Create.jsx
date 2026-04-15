@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { geocodeAddress } from '../lib/geocoding';
+import { geocodeAddress, reverseGeocode } from '../lib/geocoding';
+import LocationPicker from '../components/LocationPicker';
 
 export default function Create() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Create() {
     club_name: '',
     image_url: ''
   });
+  const [coordinates, setCoordinates] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,6 +28,18 @@ export default function Create() {
       [name]: value
     }));
     setError('');
+  };
+
+  const handleMapLocationSelect = async (lat, lng) => {
+    setCoordinates({ lat, lng });
+    
+    const result = await reverseGeocode(lat, lng);
+    if (result.success) {
+      setFormData(prev => ({
+        ...prev,
+        location_address: result.address
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -49,8 +63,6 @@ export default function Create() {
     setLoading(true);
 
     try {
-      const geocodeResult = await geocodeAddress(formData.location_address.trim());
-
       const eventData = {
         creator_id: user.id,
         title: formData.title.trim(),
@@ -60,9 +72,15 @@ export default function Create() {
         end_time: endDate.toISOString(),
       };
 
-      if (geocodeResult.success) {
-        eventData.location_lat = geocodeResult.lat;
-        eventData.location_lng = geocodeResult.lng;
+      if (coordinates) {
+        eventData.location_lat = coordinates.lat;
+        eventData.location_lng = coordinates.lng;
+      } else {
+        const geocodeResult = await geocodeAddress(formData.location_address.trim());
+        if (geocodeResult.success) {
+          eventData.location_lat = geocodeResult.lat;
+          eventData.location_lng = geocodeResult.lng;
+        }
       }
 
       if (formData.club_name.trim()) {
@@ -122,6 +140,10 @@ export default function Create() {
             onChange={handleChange}
             placeholder="e.g., Talley Student Union, D.H. Hill Library"
             required
+          />
+          <LocationPicker
+            onLocationSelect={handleMapLocationSelect}
+            initialPosition={coordinates ? [coordinates.lat, coordinates.lng] : null}
           />
         </div>
 
