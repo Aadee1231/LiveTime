@@ -190,6 +190,21 @@
   color: var(--accent);
 }
 
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text);
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+}
+
+.empty-state p:first-child {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
 .create-form {
   max-width: 600px;
   padding: 2rem;

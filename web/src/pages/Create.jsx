@@ -1,6 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Create() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     location: '',
@@ -9,6 +14,8 @@ export default function Create() {
     description: '',
     image: null
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,6 +23,7 @@ export default function Create() {
       ...prev,
       [name]: value
     }));
+    setError('');
   };
 
   const handleImageChange = (e) => {
@@ -26,15 +34,57 @@ export default function Create() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Event Data:', formData);
-    alert('Event created! Check console for details.');
+    setError('');
+
+    if (!formData.title.trim() || !formData.location.trim() || !formData.description.trim()) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    if (!formData.startTime || !formData.endTime) {
+      setError('Please select start and end times');
+      return;
+    }
+
+    const startDate = new Date(formData.startTime);
+    const endDate = new Date(formData.endTime);
+
+    if (endDate <= startDate) {
+      setError('End time must be after start time');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error: insertError } = await supabase
+        .from('events')
+        .insert({
+          creator_id: user.id,
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          location_address: formData.location.trim(),
+          start_time: startDate.toISOString(),
+          end_time: endDate.toISOString(),
+        });
+
+      if (insertError) throw insertError;
+
+      navigate('/feed');
+    } catch (err) {
+      console.error('Error creating event:', err);
+      setError(err.message || 'Failed to create event. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="page">
       <h1>Create Event</h1>
+      {error && <div className="error-message">{error}</div>}
       <form className="create-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="title">Event Title</label>
@@ -109,7 +159,9 @@ export default function Create() {
           />
         </div>
 
-        <button type="submit" className="submit-btn">Create Event</button>
+        <button type="submit" className="submit-btn" disabled={loading}>
+          {loading ? 'Creating...' : 'Create Event'}
+        </button>
       </form>
     </div>
   );
