@@ -134,6 +134,12 @@
   color: var(--text);
 }
 
+.event-pin .description {
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .event-pin .time {
   color: var(--text-h);
   font-weight: 500;
