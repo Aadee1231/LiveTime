@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import EventCard from '../components/EventCard';
+import { filterRelevantEvents, sortEventsByStatus } from '../lib/eventUtils';
 
 export default function Feed() {
   const [events, setEvents] = useState([]);
@@ -16,17 +17,21 @@ export default function Feed() {
       setLoading(true);
       setError('');
 
-      const now = new Date().toISOString();
+      const now = new Date();
+      const fourHoursFromNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
 
       const { data, error: fetchError } = await supabase
         .from('events')
         .select('*')
-        .gte('end_time', now)
-        .order('start_time', { ascending: true });
+        .lte('start_time', fourHoursFromNow.toISOString())
+        .gte('end_time', now.toISOString());
 
       if (fetchError) throw fetchError;
 
-      setEvents(data || []);
+      const relevantEvents = filterRelevantEvents(data || []);
+      const sortedEvents = sortEventsByStatus(relevantEvents);
+
+      setEvents(sortedEvents);
     } catch (err) {
       console.error('Error fetching events:', err);
       setError('Failed to load events. Please try again.');
@@ -58,8 +63,8 @@ export default function Feed() {
       <h1>Event Feed</h1>
       {events.length === 0 ? (
         <div className="empty-state">
-          <p>No upcoming events yet.</p>
-          <p>Be the first to create one!</p>
+          <p>No live or starting soon events right now.</p>
+          <p>Check back later or create an event!</p>
         </div>
       ) : (
         <div className="feed-container">

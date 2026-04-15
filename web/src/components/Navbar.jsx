@@ -20,7 +20,9 @@ export default function Navbar() {
               <Link to="/">Home</Link>
               <Link to="/feed">Feed</Link>
               <Link to="/create">Create</Link>
-              <Link to="/profile">Profile</Link>
+              <Link to="/profile">
+                <span className="user-email">{user.email}</span>
+              </Link>
               <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>

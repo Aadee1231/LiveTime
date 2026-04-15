@@ -55,6 +55,11 @@
   color: var(--accent);
 }
 
+.user-email {
+  color: var(--text-h);
+  font-weight: 500;
+}
+
 .main-content {
   flex: 1;
   max-width: 1200px;
@@ -120,9 +125,18 @@
   box-shadow: var(--shadow);
 }
 
+.event-pin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 .event-pin h3 {
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   font-size: 1.1rem;
+  flex: 1;
 }
 
 .event-pin p {
@@ -168,6 +182,13 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
+}
+
+.event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
 }
 
 .event-header h3 {
@@ -298,19 +319,49 @@
 }
 
 .profile-container {
-  padding: 2rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
   margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border);
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-family: var(--sans);
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--text-h);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
 }
 
 .avatar {
@@ -346,20 +397,68 @@
 }
 
 .profile-event-card {
-  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: 8px;
+  background: var(--bg);
+  transition: box-shadow 0.2s;
+}
+
+.profile-event-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.profile-event-card .event-image {
+  flex-shrink: 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 6px;
+  overflow: hidden;
   background: var(--code-bg);
+}
+
+.profile-event-card .event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-event-card .event-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .profile-event-card h4 {
   margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
 }
 
-.profile-event-card p {
-  margin: 0.25rem 0;
+.profile-event-card .club-name {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.profile-event-card .location,
+.profile-event-card .time {
+  margin: 0.35rem 0;
   font-size: 0.9rem;
   color: var(--text);
+}
+
+.profile-event-card .description {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .auth-container {
@@ -686,4 +785,27 @@
 
 .remove-image-btn:hover {
   background: rgba(0, 0, 0, 0.9);
+}
+
+.event-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.event-status-badge.live {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.event-status-badge.soon {
+  background: rgba(251, 191, 36, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(251, 191, 36, 0.3);
 }

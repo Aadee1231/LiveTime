@@ -1,5 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useEventAttendance } from '../hooks/useEventAttendance';
+import { getEventStatus } from '../lib/eventUtils';
 
 export default function EventCard({
   eventId,
@@ -15,6 +16,8 @@ export default function EventCard({
     eventId,
     user?.id
   );
+
+  const eventStatus = getEventStatus(startTime, endTime);
 
   const formatEventTime = (start, end) => {
     const startDate = new Date(start);
@@ -105,10 +108,23 @@ export default function EventCard({
     </button>
   );
 
+  const renderStatusBadge = () => {
+    if (eventStatus === 'live') {
+      return <span className="event-status-badge live">🔴 Live Now</span>;
+    }
+    if (eventStatus === 'soon') {
+      return <span className="event-status-badge soon">⏰ Starting Soon</span>;
+    }
+    return null;
+  };
+
   if (variant === 'compact') {
     return (
       <div className="event-pin">
-        <h3>{title}</h3>
+        <div className="event-pin-header">
+          <h3>{title}</h3>
+          {renderStatusBadge()}
+        </div>
         <p className="location">📍 {locationAddress}</p>
         <p className="description">{truncateText(description)}</p>
         <p className="time">{formatEventTime(startTime, endTime)}</p>
@@ -128,7 +144,10 @@ export default function EventCard({
   return (
     <div className="event-card">
       <div className="event-header">
-        <h3>{title}</h3>
+        <div className="event-title-row">
+          <h3>{title}</h3>
+          {renderStatusBadge()}
+        </div>
         <span className="event-time">
           {formatEventTime(startTime, endTime)}
         </span>

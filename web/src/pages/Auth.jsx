@@ -14,6 +14,17 @@ export default function Auth() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!email.endsWith('@ncsu.edu')) {
+      setError('Please use your @ncsu.edu email address');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -25,7 +36,15 @@ export default function Auth() {
         navigate('/');
       }
     } catch (err) {
-      setError(err.message);
+      if (err.message.includes('Invalid login credentials')) {
+        setError('Invalid email or password');
+      } else if (err.message.includes('User already registered')) {
+        setError('This email is already registered. Please login instead.');
+      } else if (err.message.includes('Email not confirmed')) {
+        setError('Please check your email to confirm your account');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -49,9 +68,7 @@ export default function Auth() {
               placeholder="your.name@ncsu.edu"
               required
             />
-            {!isLogin && (
-              <p className="input-hint">Only @ncsu.edu emails are allowed</p>
-            )}
+            <p className="input-hint">Must be an @ncsu.edu email</p>
           </div>
 
           <div className="form-group">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import EventCard from '../components/EventCard';
 import MapView from '../components/MapView';
+import { filterRelevantEvents, sortEventsByStatus } from '../lib/eventUtils';
 
 export default function Home() {
   const [events, setEvents] = useState([]);
@@ -17,17 +18,21 @@ export default function Home() {
       setLoading(true);
       setError('');
 
-      const now = new Date().toISOString();
+      const now = new Date();
+      const fourHoursFromNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
 
       const { data, error: fetchError } = await supabase
         .from('events')
         .select('*')
-        .gte('end_time', now)
-        .order('start_time', { ascending: true });
+        .lte('start_time', fourHoursFromNow.toISOString())
+        .gte('end_time', now.toISOString());
 
       if (fetchError) throw fetchError;
 
-      setEvents(data || []);
+      const relevantEvents = filterRelevantEvents(data || []);
+      const sortedEvents = sortEventsByStatus(relevantEvents);
+
+      setEvents(sortedEvents);
     } catch (err) {
       console.error('Error fetching events:', err);
       setError('Failed to load events.');
@@ -49,14 +54,14 @@ export default function Home() {
       </div>
       
       <div className="event-pins">
-        <h2>Nearby Events</h2>
+        <h2>Live & Starting Soon</h2>
         {loading ? (
           <p>Loading events...</p>
         ) : error ? (
           <div className="error-message">{error}</div>
         ) : events.length === 0 ? (
           <div className="empty-state">
-            <p>No upcoming events yet.</p>
+            <p>No live or starting soon events right now.</p>
           </div>
         ) : (
           <div className="pins-grid">

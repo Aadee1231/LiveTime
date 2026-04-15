@@ -43,6 +43,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signIn = async (email, password) => {
+    if (!email.endsWith('@ncsu.edu')) {
+      throw new Error('Only @ncsu.edu email addresses are allowed');
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
