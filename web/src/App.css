@@ -211,8 +211,26 @@
   font-weight: 500;
 }
 
+.create-page {
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.create-header {
+  margin-bottom: 2rem;
+}
+
+.create-header h1 {
+  margin: 0 0 0.5rem 0;
+}
+
+.create-subtitle {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
 .create-form {
-  max-width: 600px;
   padding: 2rem;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -220,14 +238,21 @@
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   font-weight: 500;
   color: var(--text-h);
+  font-size: 0.9rem;
+}
+
+.form-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1.5rem 0;
 }
 
 .form-group input,

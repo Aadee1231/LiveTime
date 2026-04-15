@@ -9,15 +9,15 @@ export default function Create() {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
-    location: '',
-    startTime: '',
-    endTime: '',
+    location_address: '',
+    start_time: '',
+    end_time: '',
     description: '',
-    image: null
+    club_name: '',
+    image_url: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [geocodingStatus, setGeocodingStatus] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,31 +28,18 @@ export default function Create() {
     setError('');
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setFormData(prev => ({
-      ...prev,
-      image: file
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setGeocodingStatus('');
 
-    if (!formData.title.trim() || !formData.location.trim() || !formData.description.trim()) {
+    if (!formData.title.trim() || !formData.location_address.trim() || 
+        !formData.start_time || !formData.end_time || !formData.description.trim()) {
       setError('Please fill in all required fields');
       return;
     }
 
-    if (!formData.startTime || !formData.endTime) {
-      setError('Please select start and end times');
-      return;
-    }
-
-    const startDate = new Date(formData.startTime);
-    const endDate = new Date(formData.endTime);
+    const startDate = new Date(formData.start_time);
+    const endDate = new Date(formData.end_time);
 
     if (endDate <= startDate) {
       setError('End time must be after start time');
@@ -62,20 +49,13 @@ export default function Create() {
     setLoading(true);
 
     try {
-      setGeocodingStatus('Finding location on map...');
-      const geocodeResult = await geocodeAddress(formData.location.trim());
-      
-      if (!geocodeResult.success) {
-        setGeocodingStatus('⚠️ Could not find exact location - event will be created without map pin');
-      } else {
-        setGeocodingStatus('✓ Location found!');
-      }
+      const geocodeResult = await geocodeAddress(formData.location_address.trim());
 
       const eventData = {
         creator_id: user.id,
         title: formData.title.trim(),
         description: formData.description.trim(),
-        location_address: formData.location.trim(),
+        location_address: formData.location_address.trim(),
         start_time: startDate.toISOString(),
         end_time: endDate.toISOString(),
       };
@@ -83,6 +63,14 @@ export default function Create() {
       if (geocodeResult.success) {
         eventData.location_lat = geocodeResult.lat;
         eventData.location_lng = geocodeResult.lng;
+      }
+
+      if (formData.club_name.trim()) {
+        eventData.club_name = formData.club_name.trim();
+      }
+
+      if (formData.image_url.trim()) {
+        eventData.image_url = formData.image_url.trim();
       }
 
       const { error: insertError } = await supabase
@@ -95,62 +83,68 @@ export default function Create() {
     } catch (err) {
       console.error('Error creating event:', err);
       setError(err.message || 'Failed to create event. Please try again.');
-      setGeocodingStatus('');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="page">
-      <h1>Create Event</h1>
+    <div className="page create-page">
+      <div className="create-header">
+        <h1>Post Event</h1>
+        <p className="create-subtitle">Share what's happening on campus</p>
+      </div>
+      
       {error && <div className="error-message">{error}</div>}
-      {geocodingStatus && <div className="info-message">{geocodingStatus}</div>}
+      
       <form className="create-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="title">Event Title</label>
+          <label htmlFor="title">Event Title *</label>
           <input
             type="text"
             id="title"
             name="title"
             value={formData.title}
             onChange={handleChange}
+            placeholder="e.g., Basketball Game, Study Session"
             required
+            autoFocus
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="location">Location</label>
+          <label htmlFor="location_address">Location *</label>
           <input
             type="text"
-            id="location"
-            name="location"
-            value={formData.location}
+            id="location_address"
+            name="location_address"
+            value={formData.location_address}
             onChange={handleChange}
+            placeholder="e.g., Talley Student Union, D.H. Hill Library"
             required
           />
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="startTime">Start Time</label>
+            <label htmlFor="start_time">Start *</label>
             <input
               type="datetime-local"
-              id="startTime"
-              name="startTime"
-              value={formData.startTime}
+              id="start_time"
+              name="start_time"
+              value={formData.start_time}
               onChange={handleChange}
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="endTime">End Time</label>
+            <label htmlFor="end_time">End *</label>
             <input
               type="datetime-local"
-              id="endTime"
-              name="endTime"
-              value={formData.endTime}
+              id="end_time"
+              name="end_time"
+              value={formData.end_time}
               onChange={handleChange}
               required
             />
@@ -158,30 +152,47 @@ export default function Create() {
         </div>
 
         <div className="form-group">
-          <label htmlFor="description">Description</label>
+          <label htmlFor="description">Description *</label>
           <textarea
             id="description"
             name="description"
             value={formData.description}
             onChange={handleChange}
-            rows="4"
+            placeholder="What's happening? Who should come?"
+            rows="3"
             required
           />
         </div>
 
+        <div className="form-divider"></div>
+
         <div className="form-group">
-          <label htmlFor="image">Image (Optional)</label>
+          <label htmlFor="club_name">Club/Organization</label>
           <input
-            type="file"
-            id="image"
-            name="image"
-            accept="image/*"
-            onChange={handleImageChange}
+            type="text"
+            id="club_name"
+            name="club_name"
+            value={formData.club_name}
+            onChange={handleChange}
+            placeholder="e.g., Computer Science Club (optional)"
           />
         </div>
 
+        <div className="form-group">
+          <label htmlFor="image_url">Event Flyer/Image</label>
+          <input
+            type="url"
+            id="image_url"
+            name="image_url"
+            value={formData.image_url}
+            onChange={handleChange}
+            placeholder="Image URL (optional - upload coming soon)"
+          />
+          <p className="input-hint">Paste a link to your event flyer or image</p>
+        </div>
+
         <button type="submit" className="submit-btn" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Event'}
+          {loading ? 'Posting...' : 'Post Event'}
         </button>
       </form>
     </div>
