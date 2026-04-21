@@ -35,9 +35,19 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       console.log('[AuthContext] Starting auth initialization...');
+      
+      const timeoutId = setTimeout(() => {
+        console.error('[AuthContext] Session check timed out after 10 seconds!');
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+      }, 10000);
+
       try {
         console.log('[AuthContext] Calling supabase.auth.getSession()...');
         const { data: { session }, error } = await supabase.auth.getSession();
+        
+        clearTimeout(timeoutId);
         
         if (error) {
           console.error('[AuthContext] Error getting session:', error);
@@ -55,6 +65,7 @@ export const AuthProvider = ({ children }) => {
         }
         console.log('[AuthContext] Auth initialization complete');
       } catch (err) {
+        clearTimeout(timeoutId);
         console.error('[AuthContext] Error initializing auth:', err);
         setUser(null);
         setProfile(null);
