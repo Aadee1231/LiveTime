@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Profile() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [myEvents, setMyEvents] = useState([]);
   const [attendingEvents, setAttendingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('created');
+  const [deletingEventId, setDeletingEventId] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -90,6 +95,39 @@ export default function Profile() {
     return username.charAt(0).toUpperCase();
   };
 
+  const handleDeleteClick = (event) => {
+    setEventToDelete(event);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!eventToDelete) return;
+
+    try {
+      setDeletingEventId(eventToDelete.id);
+      
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', eventToDelete.id);
+
+      if (error) throw error;
+
+      setMyEvents(prev => prev.filter(e => e.id !== eventToDelete.id));
+      setShowDeleteConfirm(false);
+      setEventToDelete(null);
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      alert('Failed to delete event. Please try again.');
+    } finally {
+      setDeletingEventId(null);
+    }
+  };
+
+  const handleEditClick = (eventId) => {
+    navigate(`/edit/${eventId}`);
+  };
+
   if (loading) {
     return (
       <div className="page">
@@ -154,7 +192,28 @@ export default function Profile() {
                     </div>
                   )}
                   <div className="event-content">
-                    <h4>{event.title}</h4>
+                    <div className="event-header-row">
+                      <h4>{event.title}</h4>
+                      {activeTab === 'created' && (
+                        <div className="event-actions">
+                          <button
+                            className="action-btn edit-btn"
+                            onClick={() => handleEditClick(event.id)}
+                            title="Edit event"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="action-btn delete-btn"
+                            onClick={() => handleDeleteClick(event)}
+                            disabled={deletingEventId === event.id}
+                            title="Delete event"
+                          >
+                            {deletingEventId === event.id ? '⏳' : '🗑️'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     {event.club_name && (
                       <p className="club-name">{event.club_name}</p>
                     )}
@@ -172,6 +231,35 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="delete-modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-icon">⚠️</div>
+            <h3>Delete Event?</h3>
+            <p>Are you sure you want to delete "{eventToDelete?.title}"? This action cannot be undone.</p>
+            <div className="delete-actions">
+              <button
+                className="delete-confirm-btn"
+                onClick={handleDeleteConfirm}
+                disabled={deletingEventId}
+              >
+                {deletingEventId ? 'Deleting...' : 'Delete Event'}
+              </button>
+              <button
+                className="delete-cancel-btn"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setEventToDelete(null);
+                }}
+                disabled={deletingEventId}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
