@@ -6,8 +6,10 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <p>Loading...</p>
+      <div className="page">
+        <div className="loading-container">
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }

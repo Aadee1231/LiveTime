@@ -40,6 +40,11 @@ function EventPopup({ event }) {
   return (
     <div className="map-popup">
       <h4>{event.title}</h4>
+      {event.club_name && (
+        <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 600 }}>
+          {event.club_name}
+        </p>
+      )}
       <p className="popup-time">{formatEventTime(event.start_time, event.end_time)}</p>
       <p className="popup-description">{truncateText(event.description)}</p>
       <p className="popup-location">📍 {event.location_address}</p>

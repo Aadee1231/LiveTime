@@ -44,7 +44,9 @@ export default function Feed() {
     return (
       <div className="page">
         <h1>Event Feed</h1>
-        <p>Loading events...</p>
+        <div className="loading-container">
+          <p>Loading events...</p>
+        </div>
       </div>
     );
   }
@@ -63,7 +65,7 @@ export default function Feed() {
       <h1>Event Feed</h1>
       {events.length === 0 ? (
         <div className="empty-state">
-          <p>No live or starting soon events right now.</p>
+          <p>No live or upcoming events right now</p>
           <p>Check back later or create an event!</p>
         </div>
       ) : (
@@ -77,6 +79,8 @@ export default function Feed() {
               locationAddress={event.location_address}
               startTime={event.start_time}
               endTime={event.end_time}
+              clubName={event.club_name}
+              imageUrl={event.image_url}
               variant="feed"
             />
           ))}

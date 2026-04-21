@@ -9,6 +9,8 @@ export default function EventCard({
   locationAddress,
   startTime,
   endTime,
+  clubName,
+  imageUrl,
   variant = 'feed'
 }) {
   const { user } = useAuth();
@@ -125,6 +127,11 @@ export default function EventCard({
           <h3>{title}</h3>
           {renderStatusBadge()}
         </div>
+        {clubName && (
+          <p className="club-name" style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600 }}>
+            {clubName}
+          </p>
+        )}
         <p className="location">📍 {locationAddress}</p>
         <p className="description">{truncateText(description)}</p>
         <p className="time">{formatEventTime(startTime, endTime)}</p>
@@ -152,6 +159,11 @@ export default function EventCard({
           {formatEventTime(startTime, endTime)}
         </span>
       </div>
+      {clubName && (
+        <p className="club-name" style={{ margin: '0 0 0.75rem 0', fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600 }}>
+          {clubName}
+        </p>
+      )}
       <p className="event-description">{description}</p>
       <div className="event-footer">
         <span className="location">📍 {locationAddress}</span>

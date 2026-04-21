@@ -56,12 +56,15 @@ export default function Home() {
       <div className="event-pins">
         <h2>Live & Starting Soon</h2>
         {loading ? (
-          <p>Loading events...</p>
+          <div className="loading-container">
+            <p>Loading events...</p>
+          </div>
         ) : error ? (
           <div className="error-message">{error}</div>
         ) : events.length === 0 ? (
           <div className="empty-state">
-            <p>No live or starting soon events right now.</p>
+            <p>No live or upcoming events right now</p>
+            <p>Check back soon or create your own event!</p>
           </div>
         ) : (
           <div className="pins-grid">
@@ -74,6 +77,8 @@ export default function Home() {
                 locationAddress={event.location_address}
                 startTime={event.start_time}
                 endTime={event.end_time}
+                clubName={event.club_name}
+                imageUrl={event.image_url}
                 variant="compact"
               />
             ))}
