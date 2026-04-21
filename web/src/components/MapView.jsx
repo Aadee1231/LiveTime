@@ -1,21 +1,62 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { useEventAttendance } from '../hooks/useEventAttendance';
 import { useAuth } from '../contexts/AuthContext';
 import { useEventModal } from '../contexts/EventModalContext';
+import { getEventStatus } from '../lib/eventUtils';
+import { useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+
+// Custom marker icons
+const createCustomIcon = (status, isSelected) => {
+  const colors = {
+    live: isSelected ? '#dc2626' : '#ef4444',
+    soon: isSelected ? '#d97706' : '#f59e0b',
+    default: isSelected ? '#7e22ce' : '#9333ea'
+  };
+  
+  const color = colors[status] || colors.default;
+  const size = isSelected ? 40 : 32;
+  
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `
+      <div class="marker-pin ${status} ${isSelected ? 'selected' : ''}" style="
+        width: ${size}px;
+        height: ${size}px;
+        background: ${color};
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid white;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        position: relative;
+        transition: all 0.2s ease;
+      ">
+        <div style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: ${size * 0.4}px;
+          height: ${size * 0.4}px;
+          background: white;
+          border-radius: 50%;
+        "></div>
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size]
+  });
+};
 
 function EventPopup({ event }) {
   const { user } = useAuth();
   const { openEventModal } = useEventModal();
   const { attendeeCount } = useEventAttendance(event.id, user?.id);
+  const eventStatus = getEventStatus(event.start_time, event.end_time);
 
   const formatEventTime = (startTime, endTime) => {
     const start = new Date(startTime);
@@ -43,9 +84,22 @@ function EventPopup({ event }) {
     openEventModal(event);
   };
 
+  const renderStatusBadge = () => {
+    if (eventStatus === 'live') {
+      return <span className="event-status-badge live">🔴 Live Now</span>;
+    }
+    if (eventStatus === 'soon') {
+      return <span className="event-status-badge soon">⏰ Starting Soon</span>;
+    }
+    return null;
+  };
+
   return (
     <div className="map-popup">
-      <h4>{event.title}</h4>
+      <div className="popup-header">
+        <h4>{event.title}</h4>
+        {renderStatusBadge()}
+      </div>
       {event.club_name && (
         <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 600 }}>
           {event.club_name}
@@ -64,42 +118,77 @@ function EventPopup({ event }) {
   );
 }
 
-export default function MapView({ events }) {
-  const ncStateCenter = [35.7847, -78.6821];
+function MapController({ center, zoom }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center && zoom) {
+      map.setView(center, zoom, { animate: true, duration: 0.5 });
+    }
+  }, [center, zoom, map]);
+  
+  return null;
+}
 
-  const liveEvents = events.filter(event => {
-    if (!event.location_lat || !event.location_lng) return false;
-    
-    const now = new Date();
-    const startTime = new Date(event.start_time);
-    const endTime = new Date(event.end_time);
-    const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
-    
-    return (now >= startTime && now <= endTime) || (startTime <= oneHourFromNow && startTime > now);
-  });
+export default function MapView({ events, selectedEventId, onMarkerClick, mapCenter, mapZoom }) {
+  const ncStateCenter = [35.7847, -78.6821];
+  const markerRefs = useRef({});
+
+  const validEvents = events.filter(event => 
+    event.location_lat && event.location_lng
+  );
+
+  useEffect(() => {
+    if (selectedEventId && markerRefs.current[selectedEventId]) {
+      markerRefs.current[selectedEventId].openPopup();
+    }
+  }, [selectedEventId]);
+
+  const handleMarkerClick = (event) => {
+    if (onMarkerClick) {
+      onMarkerClick(event.id);
+    }
+  };
 
   return (
     <MapContainer
-      center={ncStateCenter}
-      zoom={14}
+      center={mapCenter || ncStateCenter}
+      zoom={mapZoom || 14}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom={true}
+      zoomControl={false}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       
-      {liveEvents.map(event => (
-        <Marker
-          key={event.id}
-          position={[event.location_lat, event.location_lng]}
-        >
-          <Popup>
-            <EventPopup event={event} />
-          </Popup>
-        </Marker>
-      ))}
+      <MapController center={mapCenter} zoom={mapZoom} />
+      
+      {validEvents.map(event => {
+        const eventStatus = getEventStatus(event.start_time, event.end_time);
+        const isSelected = selectedEventId === event.id;
+        
+        return (
+          <Marker
+            key={event.id}
+            position={[event.location_lat, event.location_lng]}
+            icon={createCustomIcon(eventStatus, isSelected)}
+            eventHandlers={{
+              click: () => handleMarkerClick(event)
+            }}
+            ref={(ref) => {
+              if (ref) {
+                markerRefs.current[event.id] = ref;
+              }
+            }}
+          >
+            <Popup>
+              <EventPopup event={event} />
+            </Popup>
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 }
