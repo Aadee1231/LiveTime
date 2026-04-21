@@ -26,12 +26,14 @@ export default function Home() {
 
   const fetchEvents = async () => {
     try {
+      console.log('[Home] Starting to fetch events...');
       setLoading(true);
       setError('');
 
       const now = new Date();
       const fourHoursFromNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
 
+      console.log('[Home] Querying Supabase for events...');
       const { data, error: fetchError } = await supabase
         .from('events')
         .select(`
@@ -48,16 +50,23 @@ export default function Home() {
         .lte('start_time', fourHoursFromNow.toISOString())
         .gte('end_time', now.toISOString());
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('[Home] Supabase query error:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('[Home] Received events from Supabase:', data?.length || 0);
 
       const relevantEvents = filterRelevantEvents(data || []);
       const sortedEvents = sortEventsByStatus(relevantEvents);
 
+      console.log('[Home] Filtered and sorted events:', sortedEvents.length);
       setEvents(sortedEvents);
     } catch (err) {
-      console.error('Error fetching events:', err);
+      console.error('[Home] Error fetching events:', err);
       setError('Failed to load events.');
     } finally {
+      console.log('[Home] Setting loading to false');
       setLoading(false);
     }
   };
