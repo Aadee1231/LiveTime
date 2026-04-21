@@ -34,26 +34,32 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
+      console.log('[AuthContext] Starting auth initialization...');
       try {
+        console.log('[AuthContext] Calling supabase.auth.getSession()...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('[AuthContext] Error getting session:', error);
           setUser(null);
           setProfile(null);
           setLoading(false);
           return;
         }
 
+        console.log('[AuthContext] Session retrieved:', session ? 'User logged in' : 'No session');
         setUser(session?.user ?? null);
         if (session?.user) {
+          console.log('[AuthContext] Fetching profile for user:', session.user.id);
           await fetchProfile(session.user.id);
         }
+        console.log('[AuthContext] Auth initialization complete');
       } catch (err) {
-        console.error('Error initializing auth:', err);
+        console.error('[AuthContext] Error initializing auth:', err);
         setUser(null);
         setProfile(null);
       } finally {
+        console.log('[AuthContext] Setting loading to false');
         setLoading(false);
       }
     };
