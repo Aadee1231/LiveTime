@@ -2,6 +2,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEventModal } from '../contexts/EventModalContext';
 import { useEventAttendance } from '../hooks/useEventAttendance';
 import { getEventStatus } from '../lib/eventUtils';
+import AttendeeList from './AttendeeList';
+import ImGoingButton from './ImGoingButton';
 
 export default function EventCard({
   eventId,
@@ -64,43 +66,6 @@ export default function EventCard({
     return text.substring(0, maxLength).trim() + '...';
   };
 
-  const getInitials = (name) => {
-    if (!name) return '?';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  };
-
-  const visibleAttendees = attendees.slice(0, 5);
-  const remainingCount = Math.max(0, attendeeCount - 5);
-
-  const renderAttendeeBubbles = () => (
-    <div className="attendee-bubbles">
-      {visibleAttendees.map((attendee) => (
-        <div 
-          key={attendee.id} 
-          className="attendee-bubble" 
-          title={attendee.profiles?.full_name || 'User'}
-        >
-          {attendee.profiles?.avatar_url ? (
-            <img 
-              src={attendee.profiles.avatar_url} 
-              alt={attendee.profiles.full_name} 
-            />
-          ) : (
-            <span>{getInitials(attendee.profiles?.full_name)}</span>
-          )}
-        </div>
-      ))}
-      {remainingCount > 0 && (
-        <div className="attendee-bubble more-count">
-          <span>+{remainingCount}</span>
-        </div>
-      )}
-    </div>
-  );
 
   const handleCardClick = () => {
     openEventModal({
@@ -115,20 +80,6 @@ export default function EventCard({
     });
   };
 
-  const handleAttendanceClick = (e) => {
-    e.stopPropagation();
-    toggleAttendance();
-  };
-
-  const renderAttendanceButton = () => (
-    <button 
-      className={`attendance-btn ${isGoing ? 'going' : ''}`}
-      onClick={handleAttendanceClick}
-      disabled={!user}
-    >
-      {isGoing ? 'Going' : "I'm Going"}
-    </button>
-  );
 
   const renderStatusBadge = () => {
     if (eventStatus === 'live') {
@@ -138,6 +89,10 @@ export default function EventCard({
       return <span className="event-status-badge soon">⏰ Starting Soon</span>;
     }
     return null;
+  };
+
+  const handleAttendanceToggle = async () => {
+    await toggleAttendance();
   };
 
   if (variant === 'compact') {
@@ -156,14 +111,20 @@ export default function EventCard({
         <p className="description">{truncateText(description)}</p>
         <p className="time">{formatEventTime(startTime, endTime)}</p>
         
-        <div className="event-attendees">
-          {renderAttendeeBubbles()}
-          {renderAttendanceButton()}
+        <div className="event-attendees-section">
+          <AttendeeList 
+            attendees={attendees}
+            currentUserId={user?.id}
+            variant="compact"
+          />
+          <ImGoingButton 
+            isGoing={isGoing}
+            onToggle={handleAttendanceToggle}
+            disabled={!user}
+            loading={loading}
+            variant="compact"
+          />
         </div>
-        
-        {attendeeCount > 0 && (
-          <p className="attendee-count">{attendeeCount} going</p>
-        )}
       </div>
     );
   }
@@ -188,12 +149,19 @@ export default function EventCard({
       <div className="event-footer">
         <span className="location">📍 {locationAddress}</span>
         
-        <div className="event-attendees">
-          {renderAttendeeBubbles()}
-          {attendeeCount > 0 && (
-            <span className="attendee-count">{attendeeCount} going</span>
-          )}
-          {renderAttendanceButton()}
+        <div className="event-attendees-section">
+          <AttendeeList 
+            attendees={attendees}
+            currentUserId={user?.id}
+            variant="default"
+          />
+          <ImGoingButton 
+            isGoing={isGoing}
+            onToggle={handleAttendanceToggle}
+            disabled={!user}
+            loading={loading}
+            variant="default"
+          />
         </div>
       </div>
     </div>

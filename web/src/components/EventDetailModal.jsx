@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useEventAttendance } from '../hooks/useEventAttendance';
 import { getEventStatus } from '../lib/eventUtils';
+import AttendeeList from './AttendeeList';
+import ImGoingButton from './ImGoingButton';
 
 export default function EventDetailModal({ event, onClose }) {
   const { user } = useAuth();
-  const { attendees, isGoing, toggleAttendance, attendeeCount } = useEventAttendance(
+  const { attendees, isGoing, toggleAttendance, attendeeCount, loading } = useEventAttendance(
     event?.id,
     user?.id
   );
@@ -55,19 +57,11 @@ export default function EventDetailModal({ event, onClose }) {
     return { dateStr, timeStr: `${startTimeStr} - ${endTimeStr}` };
   };
 
-  const getInitials = (name) => {
-    if (!name) return '?';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name[0].toUpperCase();
-  };
-
-  const visibleAttendees = attendees.slice(0, 8);
-  const remainingCount = Math.max(0, attendeeCount - 8);
-
   const { dateStr, timeStr } = formatEventTime(event.start_time, event.end_time);
+
+  const handleAttendanceToggle = async () => {
+    await toggleAttendance();
+  };
 
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -198,77 +192,33 @@ export default function EventDetailModal({ event, onClose }) {
             )}
           </div>
 
-          <div className="modal-attendees-section">
-            <div className="modal-attendees-header">
-              <h3 className="modal-attendees-title">
-                {attendeeCount === 0 ? 'No one going yet' : attendeeCount === 1 ? '1 person going' : `${attendeeCount} people going`}
-              </h3>
+          <div className="modal-attendees-section-enhanced">
+            <div className="modal-attendees-header-enhanced">
+              <h3 className="modal-attendees-title-enhanced">Who's Going</h3>
+              <span className="modal-attendees-count-badge">
+                {attendeeCount} {attendeeCount === 1 ? 'person' : 'people'}
+              </span>
             </div>
             
-            {attendeeCount > 0 && (
-              <div className="modal-attendee-list">
-                {visibleAttendees.map((attendee) => (
-                  <div key={attendee.id} className="modal-attendee-item">
-                    <div className="modal-attendee-avatar">
-                      {attendee.profiles?.avatar_url ? (
-                        <img 
-                          src={attendee.profiles.avatar_url} 
-                          alt={attendee.profiles.full_name || 'User'} 
-                        />
-                      ) : (
-                        <span>{getInitials(attendee.profiles?.full_name)}</span>
-                      )}
-                    </div>
-                    <span className="modal-attendee-name">
-                      {attendee.profiles?.full_name || 'User'}
-                    </span>
-                  </div>
-                ))}
-                {remainingCount > 0 && (
-                  <div className="modal-attendee-item modal-attendee-more">
-                    <div className="modal-attendee-avatar">
-                      <span>+{remainingCount}</span>
-                    </div>
-                    <span className="modal-attendee-name">
-                      {remainingCount === 1 ? '1 more' : `${remainingCount} more`}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {attendeeCount === 0 && (
-              <div className="modal-attendees-empty">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <p>Be the first to join this event!</p>
-              </div>
-            )}
+            <div className="modal-attendees-display">
+              <AttendeeList 
+                attendees={attendees}
+                currentUserId={user?.id}
+                variant="modal"
+              />
+            </div>
           </div>
 
           <div className="modal-actions">
-            <button 
-              className={`modal-primary-btn ${isGoing ? 'going' : ''}`}
-              onClick={toggleAttendance}
+            <ImGoingButton 
+              isGoing={isGoing}
+              onToggle={handleAttendanceToggle}
               disabled={!user}
-            >
-              {isGoing ? (
-                <>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  Going
-                </>
-              ) : (
-                "I'm Going"
-              )}
-            </button>
+              loading={loading}
+              variant="modal"
+            />
 
-            <div className="modal-secondary-actions">
+            <div className="modal-secondary-actions" style={{ marginLeft: 'auto' }}>
               <button 
                 className="modal-secondary-btn"
                 onClick={handleCopyLink}
