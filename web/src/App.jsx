@@ -6,11 +6,14 @@ import Feed from './pages/Feed';
 import Create from './pages/Create';
 import Profile from './pages/Profile';
 import Auth from './pages/Auth';
+import EventDetailModal from './components/EventDetailModal';
 import { useAuth } from './contexts/AuthContext';
+import { useEventModal } from './contexts/EventModalContext';
 import './App.css';
 
 function App() {
   const { user } = useAuth();
+  const { selectedEvent, closeEventModal } = useEventModal();
 
   return (
     <Router>
@@ -56,6 +59,9 @@ function App() {
             />
           </Routes>
         </main>
+        {selectedEvent && (
+          <EventDetailModal event={selectedEvent} onClose={closeEventModal} />
+        )}
       </div>
     </Router>
   );

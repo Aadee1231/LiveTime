@@ -1,4 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
+import { useEventModal } from '../contexts/EventModalContext';
 import { useEventAttendance } from '../hooks/useEventAttendance';
 import { getEventStatus } from '../lib/eventUtils';
 
@@ -14,6 +15,7 @@ export default function EventCard({
   variant = 'feed'
 }) {
   const { user } = useAuth();
+  const { openEventModal } = useEventModal();
   const { attendees, isGoing, toggleAttendance, attendeeCount } = useEventAttendance(
     eventId,
     user?.id
@@ -100,10 +102,28 @@ export default function EventCard({
     </div>
   );
 
+  const handleCardClick = () => {
+    openEventModal({
+      id: eventId,
+      title,
+      description,
+      location_address: locationAddress,
+      start_time: startTime,
+      end_time: endTime,
+      club_name: clubName,
+      image_url: imageUrl
+    });
+  };
+
+  const handleAttendanceClick = (e) => {
+    e.stopPropagation();
+    toggleAttendance();
+  };
+
   const renderAttendanceButton = () => (
     <button 
       className={`attendance-btn ${isGoing ? 'going' : ''}`}
-      onClick={toggleAttendance}
+      onClick={handleAttendanceClick}
       disabled={!user}
     >
       {isGoing ? 'Going' : "I'm Going"}
@@ -122,7 +142,7 @@ export default function EventCard({
 
   if (variant === 'compact') {
     return (
-      <div className="event-pin">
+      <div className="event-pin" onClick={handleCardClick}>
         <div className="event-pin-header">
           <h3>{title}</h3>
           {renderStatusBadge()}
@@ -149,7 +169,7 @@ export default function EventCard({
   }
 
   return (
-    <div className="event-card">
+    <div className="event-card" onClick={handleCardClick}>
       <div className="event-header">
         <div className="event-title-row">
           <h3>{title}</h3>

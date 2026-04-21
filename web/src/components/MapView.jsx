@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useEventAttendance } from '../hooks/useEventAttendance';
 import { useAuth } from '../contexts/AuthContext';
+import { useEventModal } from '../contexts/EventModalContext';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -13,6 +14,7 @@ L.Icon.Default.mergeOptions({
 
 function EventPopup({ event }) {
   const { user } = useAuth();
+  const { openEventModal } = useEventModal();
   const { attendeeCount } = useEventAttendance(event.id, user?.id);
 
   const formatEventTime = (startTime, endTime) => {
@@ -37,6 +39,10 @@ function EventPopup({ event }) {
     return text.substring(0, maxLength).trim() + '...';
   };
 
+  const handleViewDetails = () => {
+    openEventModal(event);
+  };
+
   return (
     <div className="map-popup">
       <h4>{event.title}</h4>
@@ -51,6 +57,9 @@ function EventPopup({ event }) {
       {attendeeCount > 0 && (
         <p className="popup-attendees">{attendeeCount} going</p>
       )}
+      <button className="popup-view-btn" onClick={handleViewDetails}>
+        View Details
+      </button>
     </div>
   );
 }
