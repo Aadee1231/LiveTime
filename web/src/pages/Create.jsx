@@ -12,7 +12,7 @@ import SuccessModal from '../components/SuccessModal';
 
 export default function Create() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     location_address: '',
@@ -342,17 +342,19 @@ export default function Create() {
             <p className="input-hint">Upload a flyer or image (max 5MB, optional)</p>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="club_name">Club/Organization</label>
-            <input
-              type="text"
-              id="club_name"
-              name="club_name"
-              value={formData.club_name}
-              onChange={handleChange}
-              placeholder="e.g., Computer Science Club (optional)"
-            />
-          </div>
+          {profile?.account_type !== 'organization' && (
+            <div className="form-group">
+              <label htmlFor="club_name">Club/Organization</label>
+              <input
+                type="text"
+                id="club_name"
+                name="club_name"
+                value={formData.club_name}
+                onChange={handleChange}
+                placeholder="e.g., Computer Science Club (optional)"
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="event_link">Event Link (Optional)</label>

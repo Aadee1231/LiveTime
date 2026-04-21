@@ -5,11 +5,13 @@ import Home from './pages/Home';
 import Feed from './pages/Feed';
 import Create from './pages/Create';
 import Profile from './pages/Profile';
+import OrgProfile from './pages/OrgProfile';
 import Auth from './pages/Auth';
 import EventDetailModal from './components/EventDetailModal';
 import { useAuth } from './contexts/AuthContext';
 import { useEventModal } from './contexts/EventModalContext';
 import './App.css';
+import './components/OrgCredibility.css';
 
 function App() {
   const { user } = useAuth();
@@ -50,6 +52,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/org/:username" 
+              element={
+                <ProtectedRoute>
+                  <OrgProfile />
                 </ProtectedRoute>
               } 
             />

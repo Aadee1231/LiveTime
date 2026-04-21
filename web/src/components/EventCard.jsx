@@ -4,6 +4,7 @@ import { useEventAttendance } from '../hooks/useEventAttendance';
 import { getEventStatus } from '../lib/eventUtils';
 import AttendeeList from './AttendeeList';
 import ImGoingButton from './ImGoingButton';
+import OrgIdentity from './OrgIdentity';
 
 export default function EventCard({
   eventId,
@@ -14,6 +15,7 @@ export default function EventCard({
   endTime,
   clubName,
   imageUrl,
+  creatorProfile,
   variant = 'feed'
 }) {
   const { user } = useAuth();
@@ -76,7 +78,8 @@ export default function EventCard({
       start_time: startTime,
       end_time: endTime,
       club_name: clubName,
-      image_url: imageUrl
+      image_url: imageUrl,
+      creator: creatorProfile
     });
   };
 
@@ -102,7 +105,14 @@ export default function EventCard({
           <h3>{title}</h3>
           {renderStatusBadge()}
         </div>
-        {clubName && (
+        {creatorProfile?.account_type === 'organization' ? (
+          <OrgIdentity 
+            profile={creatorProfile}
+            size="small"
+            showAvatar={false}
+            clickable={true}
+          />
+        ) : clubName && (
           <p className="club-name" style={{ margin: '0.25rem 0', fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600 }}>
             {clubName}
           </p>
@@ -140,7 +150,15 @@ export default function EventCard({
           {formatEventTime(startTime, endTime)}
         </span>
       </div>
-      {clubName && (
+      {creatorProfile?.account_type === 'organization' ? (
+        <OrgIdentity 
+          profile={creatorProfile}
+          size="small"
+          showAvatar={true}
+          clickable={true}
+          className="event-card-org-identity"
+        />
+      ) : clubName && (
         <p className="club-name" style={{ margin: '0 0 0.75rem 0', fontSize: '0.875rem', color: 'var(--primary)', fontWeight: 600 }}>
           {clubName}
         </p>

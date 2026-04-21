@@ -50,7 +50,17 @@ export default function Feed() {
 
       const { data, error: fetchError } = await supabase
         .from('events')
-        .select('*')
+        .select(`
+          *,
+          creator:profiles!creator_id (
+            id,
+            account_type,
+            org_name,
+            org_username,
+            org_avatar_url,
+            is_verified
+          )
+        `)
         .lte('start_time', endOfToday.toISOString())
         .gte('end_time', now.toISOString());
 
@@ -241,6 +251,7 @@ export default function Feed() {
               endTime={event.end_time}
               clubName={event.club_name}
               imageUrl={event.image_url}
+              creatorProfile={event.creator}
               variant="feed"
             />
           ))}

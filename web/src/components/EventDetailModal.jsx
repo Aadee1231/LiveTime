@@ -4,6 +4,7 @@ import { useEventAttendance } from '../hooks/useEventAttendance';
 import { getEventStatus } from '../lib/eventUtils';
 import AttendeeList from './AttendeeList';
 import ImGoingButton from './ImGoingButton';
+import OrgIdentity from './OrgIdentity';
 
 export default function EventDetailModal({ event, onClose }) {
   const { user } = useAuth();
@@ -110,7 +111,15 @@ export default function EventDetailModal({ event, onClose }) {
           <div className="modal-header">
             <div className="modal-title-section">
               <h2 className="modal-title">{event.title}</h2>
-              {event.club_name && (
+              {event.creator?.account_type === 'organization' ? (
+                <OrgIdentity 
+                  profile={event.creator}
+                  size="default"
+                  showAvatar={true}
+                  clickable={true}
+                  className="modal-org-identity"
+                />
+              ) : event.club_name && (
                 <p className="modal-club-name">{event.club_name}</p>
               )}
             </div>
