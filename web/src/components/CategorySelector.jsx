@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 const CATEGORIES = [
   { id: 'social', label: 'Social', icon: '🎉' },
   { id: 'sports', label: 'Sports', icon: '🏀' },
