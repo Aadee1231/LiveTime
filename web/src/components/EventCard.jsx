@@ -18,7 +18,7 @@ export default function EventCard({
 }) {
   const { user } = useAuth();
   const { openEventModal } = useEventModal();
-  const { attendees, isGoing, toggleAttendance, attendeeCount } = useEventAttendance(
+  const { attendees, isGoing, loading, toggleAttendance, attendeeCount } = useEventAttendance(
     eventId,
     user?.id
   );
