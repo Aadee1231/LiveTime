@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import EventCard from '../components/EventCard';
+import { useAuth } from '../contexts/AuthContext';
 import { 
   getAllEventsForFeed, 
   sortEventsByStatus, 
@@ -27,6 +28,7 @@ const CATEGORIES = [
 ];
 
 export default function Feed() {
+  const { profile } = useAuth();
   const [allEvents, setAllEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -85,8 +87,27 @@ export default function Feed() {
     result = searchEvents(result, searchQuery);
     result = filterEventsByCategory(result, selectedCategory);
     
+    if (profile?.interests?.length > 0 && profile?.preferences?.show_live_first !== false) {
+      result = result.sort((a, b) => {
+        const aMatchesInterests = profile.interests.some(interest => 
+          a.club_name?.toLowerCase().includes(interest) || 
+          a.title?.toLowerCase().includes(interest) ||
+          a.description?.toLowerCase().includes(interest)
+        );
+        const bMatchesInterests = profile.interests.some(interest => 
+          b.club_name?.toLowerCase().includes(interest) || 
+          b.title?.toLowerCase().includes(interest) ||
+          b.description?.toLowerCase().includes(interest)
+        );
+        
+        if (aMatchesInterests && !bMatchesInterests) return -1;
+        if (!aMatchesInterests && bMatchesInterests) return 1;
+        return 0;
+      });
+    }
+    
     return result;
-  }, [allEvents, activeTab, searchQuery, selectedCategory]);
+  }, [allEvents, activeTab, searchQuery, selectedCategory, profile]);
 
   const hasActiveFilters = searchQuery || selectedCategory !== 'all';
 
@@ -109,11 +130,20 @@ export default function Feed() {
 
   const renderEmptyState = () => {
     if (allEvents.length === 0) {
+      const userInterests = profile?.interests || [];
+      const interestText = userInterests.length > 0 
+        ? userInterests.slice(0, 2).join(' or ') 
+        : 'your interests';
+      
       return (
         <div className="feed-empty-state">
           <div className="empty-icon">🎪</div>
           <h3>No events happening today</h3>
-          <p>Check back later or be the first to create an event!</p>
+          <p>
+            {userInterests.length > 0 
+              ? `No ${interestText} events right now. Check back later or create your own!`
+              : 'Check back later or be the first to create an event!'}
+          </p>
         </div>
       );
     }
@@ -125,6 +155,20 @@ export default function Feed() {
           <div className="empty-icon">🔍</div>
           <h3>Nothing in {tabLabel}</h3>
           <p>Try selecting a different tab to see more events.</p>
+        </div>
+      );
+    }
+
+    if (selectedCategory !== 'all' && filteredEvents.length === 0) {
+      const categoryLabel = CATEGORIES.find(c => c.id === selectedCategory)?.label || 'this category';
+      return (
+        <div className="feed-empty-state">
+          <div className="empty-icon">🔍</div>
+          <h3>No {categoryLabel} events right now</h3>
+          <p>Try expanding your interests or check back later.</p>
+          <button className="clear-filters-btn" onClick={clearFilters}>
+            Clear Filters
+          </button>
         </div>
       );
     }

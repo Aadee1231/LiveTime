@@ -23,6 +23,7 @@ export default function Navbar() {
               <Link to="/profile">
                 <span className="user-email">{user.email}</span>
               </Link>
+              <Link to="/settings">Settings</Link>
               <button onClick={handleLogout} className="logout-btn">
                 Logout
               </button>

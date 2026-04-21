@@ -1,8 +1,9 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function ProtectedRoute({ children }) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -16,6 +17,10 @@ export default function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (profile && !profile.onboarding_completed && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return children;

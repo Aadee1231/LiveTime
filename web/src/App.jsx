@@ -6,7 +6,9 @@ import Feed from './pages/Feed';
 import Create from './pages/Create';
 import Profile from './pages/Profile';
 import OrgProfile from './pages/OrgProfile';
+import Settings from './pages/Settings';
 import Auth from './pages/Auth';
+import Onboarding from './pages/Onboarding';
 import EventDetailModal from './components/EventDetailModal';
 import { useAuth } from './contexts/AuthContext';
 import { useEventModal } from './contexts/EventModalContext';
@@ -56,10 +58,26 @@ function App() {
               } 
             />
             <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/org/:username" 
               element={
                 <ProtectedRoute>
                   <OrgProfile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/onboarding" 
+              element={
+                <ProtectedRoute>
+                  <Onboarding />
                 </ProtectedRoute>
               } 
             />
