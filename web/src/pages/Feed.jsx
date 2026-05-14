@@ -89,7 +89,7 @@ export default function Feed() {
       setAllEvents(sortedEvents);
     } catch (err) {
       console.error('[Feed] Error fetching events:', err);
-      console.error('[Feed] Error details:', err.message, err.code);
+      console.error('[Feed] Error details:', err.message);
       setError('Failed to load events. Please try again.');
       setAllEvents([]);
     } finally {

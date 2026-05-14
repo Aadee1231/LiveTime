@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Auth Test - MiniProjects</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .success { color: green; }
+    .error { color: red; }
+    button { margin: 10px 0; padding: 10px; }
+    input { margin: 5px; padding: 5px; width: 300px; }
+  </style>
+</head>
+<body>
+  <h1>Auth & RLS Test</h1>
+  
+  <div id="status"></div>
+  
+  <h2>Sign Up / Sign In</h2>
+  <input type="email" id="email" placeholder="your-email@ncsu.edu" value="test@ncsu.edu">
+  <input type="password" id="password" placeholder="password" value="testpassword123">
+  <br>
+  <button onclick="signUp()">Sign Up</button>
+  <button onclick="signIn()">Sign In</button>
+  <button onclick="signOut()">Sign Out</button>
+  <button onclick="checkSession()">Check Session</button>
+  
+  <h2>Test Queries</h2>
+  <button onclick="testProfiles()">Test livetime_profiles</button>
+  <button onclick="testEvents()">Test livetime_events</button>
+  
+  <div id="results"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://tejjdiklhjrisaxsvhmy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlampkaWtsaGpyaXNheHN2aG15Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODUxNzQsImV4cCI6MjA5NDM2MTE3NH0.dhm-kOlN1nZm9DhnHCuXInPAlk8OflwMji5MVrRUdII';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    function log(message, type = 'info') {
+      const p = document.createElement('p');
+      p.className = type;
+      p.textContent = message;
+      document.getElementById('results').appendChild(p);
+    }
+
+    async function signUp() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      log('Attempting sign up...', 'info');
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      
+      if (error) {
+        log(`Sign up error: ${error.message}`, 'error');
+      } else {
+        log(`Sign up success! User ID: ${data.user?.id}`, 'success');
+        log('Check your email for confirmation link', 'info');
+      }
+    }
+
+    async function signIn() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      log('Attempting sign in...', 'info');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        log(`Sign in error: ${error.message}`, 'error');
+      } else {
+        log(`Sign in success! User ID: ${data.user?.id}`, 'success');
+        updateStatus();
+      }
+    }
+
+    async function signOut() {
+      log('Signing out...', 'info');
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        log(`Sign out error: ${error.message}`, 'error');
+      } else {
+        log('Signed out successfully', 'success');
+        updateStatus();
+      }
+    }
+
+    async function checkSession() {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        log(`Session error: ${error.message}`, 'error');
+      } else if (data.session) {
+        log(`Logged in as: ${data.session.user.email}`, 'success');
+        log(`User ID: ${data.session.user.id}`, 'info');
+      } else {
+        log('Not logged in', 'info');
+      }
+    }
+
+    async function testProfiles() {
+      log('Testing livetime_profiles query...', 'info');
+      
+      const { data, error } = await supabase
+        .from('livetime_profiles')
+        .select('*')
+        .limit(5);
+      
+      if (error) {
+        log(`❌ Profiles query error: ${error.message}`, 'error');
+        log(`Error code: ${error.code}`, 'error');
+        log(`Error details: ${JSON.stringify(error.details)}`, 'error');
+      } else {
+        log(`✅ Profiles query success! Found ${data.length} rows`, 'success');
+        log(`Data: ${JSON.stringify(data, null, 2)}`, 'info');
+      }
+    }
+
+    async function testEvents() {
+      log('Testing livetime_events query...', 'info');
+      
+      const { data, error } = await supabase
+        .from('livetime_events')
+        .select('*')
+        .limit(5);
+      
+      if (error) {
+        log(`❌ Events query error: ${error.message}`, 'error');
+        log(`Error code: ${error.code}`, 'error');
+      } else {
+        log(`✅ Events query success! Found ${data.length} rows`, 'success');
+      }
+    }
+
+    async function updateStatus() {
+      const { data } = await supabase.auth.getSession();
+      const statusDiv = document.getElementById('status');
+      
+      if (data.session) {
+        statusDiv.innerHTML = `<p class="success">✅ Logged in as: ${data.session.user.email}</p>`;
+      } else {
+        statusDiv.innerHTML = `<p class="error">❌ Not logged in</p>`;
+      }
+    }
+
+    // Check status on load
+    updateStatus();
+    checkSession();
+  </script>
+</body>
+</html>

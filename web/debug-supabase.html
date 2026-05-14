@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Supabase - New Org</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .success { color: green; }
+    .error { color: red; }
+    .info { color: blue; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Supabase Debug - New Organization</h1>
+  <div id="results"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://tejjdiklhjrisaxsvhmy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlampkaWtsaGpyaXNheHN2aG15Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODUxNzQsImV4cCI6MjA5NDM2MTE3NH0.dhm-kOlN1nZm9DhnHCuXInPAlk8OflwMji5MVrRUdII';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const results = document.getElementById('results');
+
+    function log(message, type = 'info') {
+      const p = document.createElement('p');
+      p.className = type;
+      p.textContent = message;
+      results.appendChild(p);
+    }
+
+    function logObject(label, obj) {
+      const div = document.createElement('div');
+      div.innerHTML = `<strong>${label}:</strong><pre>${JSON.stringify(obj, null, 2)}</pre>`;
+      results.appendChild(div);
+    }
+
+    async function runTests() {
+      log('=== STARTING DIAGNOSTIC TESTS ===', 'info');
+      
+      // Test 1: Connection
+      try {
+        log('✓ Supabase client created', 'success');
+        log(`URL: ${SUPABASE_URL}`, 'info');
+      } catch (e) {
+        log(`✗ Failed to create client: ${e.message}`, 'error');
+        return;
+      }
+
+      // Test 2: Auth session
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        log(`✓ Auth session check: ${data.session ? 'Logged in as ' + data.session.user.email : 'Not logged in'}`, 'success');
+      } catch (e) {
+        log(`✗ Auth session failed: ${e.message}`, 'error');
+      }
+
+      // Test 3: Check livetime_profiles table
+      try {
+        log('Checking livetime_profiles table...', 'info');
+        const { data, error, count } = await supabase
+          .from('livetime_profiles')
+          .select('*', { count: 'exact' })
+          .limit(5);
+        
+        if (error) {
+          if (error.message.includes('relation') || error.code === 'PGRST116') {
+            log('✗ TABLE livetime_profiles DOES NOT EXIST!', 'error');
+            log('You need to run MINIPROJECTS_LIVETIME_SETUP.sql in SQL Editor', 'error');
+          } else {
+            throw error;
+          }
+        } else {
+          log(`✓ Table livetime_profiles exists (${count} total rows)`, 'success');
+          if (data && data.length > 0) {
+            logObject('Sample profiles', data);
+          }
+        }
+      } catch (e) {
+        log(`✗ Error checking livetime_profiles: ${e.message}`, 'error');
+        logObject('Full error', e);
+      }
+
+      // Test 4: Check livetime_events table
+      try {
+        log('Checking livetime_events table...', 'info');
+        const { data, error, count } = await supabase
+          .from('livetime_events')
+          .select('*', { count: 'exact' })
+          .limit(5);
+        
+        if (error) {
+          if (error.message.includes('relation') || error.code === 'PGRST116') {
+            log('✗ TABLE livetime_events DOES NOT EXIST!', 'error');
+          } else {
+            throw error;
+          }
+        } else {
+          log(`✓ Table livetime_events exists (${count} total rows)`, 'success');
+        }
+      } catch (e) {
+        log(`✗ Error checking livetime_events: ${e.message}`, 'error');
+      }
+
+      // Test 5: Try to create a test profile (if logged in)
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          log('Attempting to fetch current user profile...', 'info');
+          const userId = sessionData.session.user.id;
+          
+          const { data, error } = await supabase
+            .from('livetime_profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+          
+          if (error) {
+            if (error.code === 'PGRST116') {
+              log('Profile does not exist for current user, trying to create...', 'info');
+              
+              const { data: newProfile, error: createError } = await supabase
+                .from('livetime_profiles')
+                .insert({
+                  id: userId,
+                  email: sessionData.session.user.email,
+                  interests: [],
+                  preferences: {}
+                })
+                .select()
+                .single();
+              
+              if (createError) {
+                log(`✗ Failed to create profile: ${createError.message}`, 'error');
+                logObject('Create error', createError);
+              } else {
+                log('✓ Profile created successfully!', 'success');
+                logObject('New profile', newProfile);
+              }
+            } else {
+              throw error;
+            }
+          } else {
+            log('✓ Profile exists for current user', 'success');
+            logObject('User profile', data);
+          }
+        }
+      } catch (e) {
+        log(`✗ Error with profile operations: ${e.message}`, 'error');
+        logObject('Profile error', e);
+      }
+
+      // Test 6: Storage buckets
+      try {
+        log('Checking storage buckets...', 'info');
+        const { data, error } = await supabase.storage.listBuckets();
+        if (error) throw error;
+        
+        const hasEventImages = data.some(b => b.name === 'livetime-event-images');
+        const hasOrgAvatars = data.some(b => b.name === 'livetime-org-avatars');
+        
+        log(`${hasEventImages ? '✓' : '✗'} Bucket 'livetime-event-images' ${hasEventImages ? 'exists' : 'MISSING'}`, hasEventImages ? 'success' : 'error');
+        log(`${hasOrgAvatars ? '✓' : '✗'} Bucket 'livetime-org-avatars' ${hasOrgAvatars ? 'exists' : 'MISSING'}`, hasOrgAvatars ? 'success' : 'error');
+        
+        logObject('All buckets', data.map(b => b.name));
+      } catch (e) {
+        log(`✗ Error checking storage: ${e.message}`, 'error');
+      }
+
+      log('=== TESTS COMPLETE ===', 'info');
+    }
+
+    runTests();
+  </script>
+</body>
+</html>

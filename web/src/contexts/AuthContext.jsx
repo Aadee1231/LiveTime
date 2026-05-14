@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }) => {
             .from('livetime_profiles')
             .insert({
               id: userId,
+              email: null,
               interests: [],
               preferences: {
                 event_radius: 5,
@@ -50,6 +51,7 @@ export const AuthProvider = ({ children }) => {
             setProfile(newProfile);
           }
         } else {
+          console.error('[AuthContext] Profile fetch error:', error);
           throw error;
         }
       } else {
@@ -57,7 +59,7 @@ export const AuthProvider = ({ children }) => {
         setProfile(data);
       }
     } catch (err) {
-      console.error('[AuthContext] Error fetching profile:', err);
+      console.error('[AuthContext] Error in fetchProfile:', err.message);
       setProfile(null);
     }
   };
@@ -70,7 +72,6 @@ export const AuthProvider = ({ children }) => {
       
       try {
         console.log('[AuthContext] Calling supabase.auth.getSession()...');
-        
         const { data, error } = await supabase.auth.getSession();
         const session = data?.session;
         
