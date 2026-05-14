@@ -29,19 +29,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'X-Client-Info': 'livetime-web',
-      'Connection': 'keep-alive'
-    },
-    fetch: (url, options = {}) => {
-      console.log('[Supabase] Fetching:', url.substring(url.lastIndexOf('/') + 1));
-      return fetch(url, {
-        ...options,
-        signal: AbortSignal.timeout(5000),
-        keepalive: true
-      }).catch(err => {
-        console.error('[Supabase] Fetch error:', err.message);
-        throw err;
-      });
+      'X-Client-Info': 'livetime-web'
     }
   },
   db: {

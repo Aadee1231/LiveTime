@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Supabase Connection Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>Supabase Connection Test</h1>
+  <div id="results"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://wotsosjxlowbamswgjmk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvdHNvc2p4bG93YmFtc3dnam1rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3ODE3NjEsImV4cCI6MjA5NDM1Nzc2MX0.kb5xZ4PaymnlUgfOpPlf2ZdNfn9JEe2ljEaizjX1lG8';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const results = document.getElementById('results');
+
+    async function testConnection() {
+      results.innerHTML = '<p>Testing connection...</p>';
+
+      // Test 1: Basic connection
+      try {
+        results.innerHTML += '<p>✓ Supabase client created</p>';
+      } catch (e) {
+        results.innerHTML += `<p>✗ Failed to create client: ${e.message}</p>`;
+        return;
+      }
+
+      // Test 2: Check session
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        results.innerHTML += `<p>✓ Session check: ${data.session ? 'Logged in' : 'Not logged in'}</p>`;
+      } catch (e) {
+        results.innerHTML += `<p>✗ Session check failed: ${e.message}</p>`;
+      }
+
+      // Test 3: Check if livetime_profiles table exists
+      try {
+        const { data, error } = await supabase
+          .from('livetime_profiles')
+          .select('id')
+          .limit(1);
+        
+        if (error) {
+          if (error.code === 'PGRST116' || error.message.includes('relation')) {
+            results.innerHTML += `<p>✗ Table 'livetime_profiles' does NOT exist!</p>`;
+            results.innerHTML += `<p style="color: red; font-weight: bold;">YOU NEED TO RUN MINIPROJECTS_LIVETIME_SETUP.sql</p>`;
+          } else {
+            throw error;
+          }
+        } else {
+          results.innerHTML += `<p>✓ Table 'livetime_profiles' exists (${data.length} rows found)</p>`;
+        }
+      } catch (e) {
+        results.innerHTML += `<p>✗ Error checking livetime_profiles: ${e.message}</p>`;
+      }
+
+      // Test 4: Check if livetime_events table exists
+      try {
+        const { data, error } = await supabase
+          .from('livetime_events')
+          .select('id')
+          .limit(1);
+        
+        if (error) {
+          if (error.code === 'PGRST116' || error.message.includes('relation')) {
+            results.innerHTML += `<p>✗ Table 'livetime_events' does NOT exist!</p>`;
+          } else {
+            throw error;
+          }
+        } else {
+          results.innerHTML += `<p>✓ Table 'livetime_events' exists (${data.length} rows found)</p>`;
+        }
+      } catch (e) {
+        results.innerHTML += `<p>✗ Error checking livetime_events: ${e.message}</p>`;
+      }
+
+      // Test 5: Check storage buckets
+      try {
+        const { data, error } = await supabase.storage.listBuckets();
+        if (error) throw error;
+        
+        const hasEventImages = data.some(b => b.name === 'livetime-event-images');
+        const hasOrgAvatars = data.some(b => b.name === 'livetime-org-avatars');
+        
+        results.innerHTML += `<p>${hasEventImages ? '✓' : '✗'} Bucket 'livetime-event-images' ${hasEventImages ? 'exists' : 'missing'}</p>`;
+        results.innerHTML += `<p>${hasOrgAvatars ? '✓' : '✗'} Bucket 'livetime-org-avatars' ${hasOrgAvatars ? 'exists' : 'missing'}</p>`;
+      } catch (e) {
+        results.innerHTML += `<p>✗ Error checking storage: ${e.message}</p>`;
+      }
+
+      results.innerHTML += '<hr><p><strong>Test complete!</strong></p>';
+    }
+
+    testConnection();
+  </script>
+</body>
+</html>

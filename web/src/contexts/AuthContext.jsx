@@ -71,25 +71,8 @@ export const AuthProvider = ({ children }) => {
       try {
         console.log('[AuthContext] Calling supabase.auth.getSession()...');
         
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session check timeout')), 6000);
-        });
-        
-        const sessionPromise = (async () => {
-          try {
-            const result = await supabase.auth.getSession();
-            return { session: result.data?.session, error: result.error };
-          } catch (sessionError) {
-            console.warn('[AuthContext] Session fetch failed, trying getUser()...', sessionError);
-            const userResult = await supabase.auth.getUser();
-            if (userResult.data?.user) {
-              return { session: { user: userResult.data.user }, error: null };
-            }
-            return { session: null, error: userResult.error };
-          }
-        })();
-        
-        const { session, error } = await Promise.race([sessionPromise, timeoutPromise]);
+        const { data, error } = await supabase.auth.getSession();
+        const session = data?.session;
         
         if (!isMounted) {
           console.log('[AuthContext] Component unmounted, skipping state updates');
@@ -149,6 +132,9 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: window.location.origin
+      }
     });
 
     if (error) throw error;
