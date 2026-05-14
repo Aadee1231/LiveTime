@@ -17,12 +17,20 @@ export default function Profile() {
   useEffect(() => {
     if (user) {
       fetchUserData();
+    } else {
+      setLoading(false);
     }
   }, [user]);
 
   const fetchUserData = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log('[Profile] Fetching user data for:', user.id);
 
       const [createdEventsResult, attendingEventsResult] = await Promise.all([
         supabase
@@ -49,8 +57,12 @@ export default function Profile() {
           .eq('user_id', user.id)
       ]);
 
-      if (createdEventsResult.error) throw createdEventsResult.error;
-      if (attendingEventsResult.error) throw attendingEventsResult.error;
+      if (createdEventsResult.error) {
+        console.error('[Profile] Error fetching created events:', createdEventsResult.error);
+      }
+      if (attendingEventsResult.error) {
+        console.error('[Profile] Error fetching attending events:', attendingEventsResult.error);
+      }
 
       setMyEvents(createdEventsResult.data || []);
       
@@ -60,9 +72,11 @@ export default function Profile() {
         .sort((a, b) => new Date(b.start_time) - new Date(a.start_time)) || [];
       
       setAttendingEvents(attending);
+      console.log('[Profile] Loaded events - Created:', createdEventsResult.data?.length || 0, 'Attending:', attending.length);
     } catch (err) {
-      console.error('Error fetching user data:', err);
+      console.error('[Profile] Error fetching user data:', err);
     } finally {
+      console.log('[Profile] Setting loading to false');
       setLoading(false);
     }
   };

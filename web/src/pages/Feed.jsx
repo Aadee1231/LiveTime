@@ -56,6 +56,8 @@ export default function Feed() {
       endOfToday.setHours(23, 59, 59, 999);
 
       console.log('[Feed] Querying Supabase for events...');
+      console.log('[Feed] Time range:', { start: now.toISOString(), end: endOfToday.toISOString() });
+      
       const { data, error: fetchError } = await supabase
         .from('events')
         .select(`
@@ -78,6 +80,7 @@ export default function Feed() {
       }
 
       console.log('[Feed] Received events from Supabase:', data?.length || 0);
+      console.log('[Feed] Raw data:', data);
 
       const relevantEvents = getAllEventsForFeed(data || []);
       const sortedEvents = sortEventsByStatus(relevantEvents);
@@ -86,7 +89,9 @@ export default function Feed() {
       setAllEvents(sortedEvents);
     } catch (err) {
       console.error('[Feed] Error fetching events:', err);
+      console.error('[Feed] Error details:', err.message, err.code);
       setError('Failed to load events. Please try again.');
+      setAllEvents([]);
     } finally {
       console.log('[Feed] Setting loading to false');
       setLoading(false);
