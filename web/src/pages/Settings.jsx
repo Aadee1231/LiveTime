@@ -83,6 +83,23 @@ export default function Settings() {
       )}
 
       <div className="settings-content">
+        {selectedInterests.length > 0 && (
+          <div className="feed-tuning-summary">
+            <div className="tuning-icon">🎯</div>
+            <div className="tuning-content">
+              <h4>Your feed is tuned to:</h4>
+              <div className="tuning-tags">
+                {selectedInterests.slice(0, 5).map(interest => (
+                  <span key={interest} className="tuning-tag">{interest}</span>
+                ))}
+                {selectedInterests.length > 5 && (
+                  <span className="tuning-tag more">+{selectedInterests.length - 5} more</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="settings-section">
           <div className="section-header">
             <h2>Your Interests</h2>
@@ -170,7 +187,19 @@ export default function Settings() {
             onClick={handleSave}
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? (
+              <>
+                <span className="btn-spinner"></span>
+                Saving...
+              </>
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}>
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Save Changes
+              </>
+            )}
           </button>
         </div>
       </div>

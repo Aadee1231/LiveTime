@@ -74,9 +74,11 @@ export const AuthProvider = ({ children }) => {
     let isMounted = true;
     
     const initAuth = async () => {
-      console.log('[AuthContext] Starting auth initialization...');
+      console.log(' [AuthContext] Starting auth initialization...');
+    
       
       try {
+
         console.log('[AuthContext] Calling supabase.auth.getSession()...');
         const { data, error } = await supabase.auth.getSession();
         const session = data?.session;

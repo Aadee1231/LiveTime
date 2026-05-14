@@ -9,6 +9,8 @@ import ImageUpload from '../components/ImageUpload';
 import CategorySelector from '../components/CategorySelector';
 import ToggleSwitch from '../components/ToggleSwitch';
 import SuccessModal from '../components/SuccessModal';
+import EventPreviewCard from '../components/EventPreviewCard';
+import QuickTemplateSelector from '../components/QuickTemplateSelector';
 
 export default function Create() {
   const navigate = useNavigate();
@@ -114,6 +116,16 @@ export default function Create() {
     return Object.keys(errors).length === 0;
   };
 
+  const handleTemplateSelect = (template) => {
+    setFormData(prev => ({
+      ...prev,
+      title: template.title,
+      description: template.description,
+      category: template.category,
+      free_food: template.free_food
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -217,12 +229,16 @@ export default function Create() {
   return (
     <div className="page create-page">
       <div className="create-header">
-        <h1>Create Event</h1>
-        <p className="create-subtitle">Share what's happening on campus</p>
+        <h1>Post an Event</h1>
+        <p className="create-subtitle">Share what's happening and bring people together</p>
       </div>
+
+      <QuickTemplateSelector onSelectTemplate={handleTemplateSelect} />
+      
+      <EventPreviewCard formData={formData} />
       
       {error && <div className="error-banner">{error}</div>}
-      
+
       <form className="create-form" onSubmit={handleSubmit}>
         <div className="form-section">
           <h3 className="section-title">Basic Info</h3>

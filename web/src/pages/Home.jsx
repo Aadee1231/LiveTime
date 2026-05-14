@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
 import EventCard from '../components/EventCard';
 import MapView from '../components/MapView';
+import CampusPulseCard from '../components/CampusPulseCard';
 import { filterRelevantEvents, sortEventsByStatus, getEventStatus, searchEvents } from '../lib/eventUtils';
 import { useBatchEventAttendance } from '../hooks/useBatchEventAttendance';
 import { useAuth } from '../contexts/AuthContext';
@@ -119,10 +120,16 @@ export default function Home() {
     <div className="home-page">
       <div className="home-header">
         <div className="home-header-content">
-          <h1>Live Events Near You</h1>
-          <p className="home-subtitle">Discover what's happening on campus right now</p>
+          <h1>Live Campus Radar</h1>
+          <p className="home-subtitle">Your real-time pulse on campus events</p>
         </div>
       </div>
+
+      {events.length > 0 && (
+        <div className="campus-pulse-section">
+          <CampusPulseCard events={events} />
+        </div>
+      )}
 
       <div className="map-section">
         <div className="map-controls-bar">
@@ -208,14 +215,14 @@ export default function Home() {
           <div className="error-message">{error}</div>
         ) : filteredEvents.length === 0 ? (
           <div className="empty-state-premium">
-            <div className="empty-icon">🎪</div>
-            <h3>No events found</h3>
+            <div className="empty-icon">📡</div>
+            <h3>Radar is quiet</h3>
             <p>
               {activeFilter !== 'all' 
-                ? `No ${FILTER_TABS.find(t => t.id === activeFilter)?.label.toLowerCase()} events right now`
+                ? `No ${FILTER_TABS.find(t => t.id === activeFilter)?.label.toLowerCase()} events on the radar`
                 : searchQuery
-                ? 'Try adjusting your search'
-                : 'No live or upcoming events right now'}
+                ? 'Try adjusting your search to find events'
+                : 'No events detected right now. Check back soon!'}
             </p>
             {(activeFilter !== 'all' || searchQuery) && (
               <button 

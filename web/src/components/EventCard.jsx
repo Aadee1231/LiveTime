@@ -5,6 +5,7 @@ import { getEventStatus } from '../lib/eventUtils';
 import AttendeeList from './AttendeeList';
 import ImGoingButton from './ImGoingButton';
 import OrgIdentity from './OrgIdentity';
+import StatusBadge from './StatusBadge';
 
 export default function EventCard({
   eventId,
@@ -89,15 +90,6 @@ export default function EventCard({
   };
 
 
-  const renderStatusBadge = () => {
-    if (eventStatus === 'live') {
-      return <span className="event-status-badge live">🔴 Live Now</span>;
-    }
-    if (eventStatus === 'soon') {
-      return <span className="event-status-badge soon">⏰ Starting Soon</span>;
-    }
-    return null;
-  };
 
   const handleAttendanceToggle = async () => {
     if (onToggleAttendance) {
@@ -112,7 +104,7 @@ export default function EventCard({
       <div className="event-pin" onClick={handleCardClick}>
         <div className="event-pin-header">
           <h3>{title}</h3>
-          {renderStatusBadge()}
+          <StatusBadge status={eventStatus} />
         </div>
         {creatorProfile?.account_type === 'organization' ? (
           <OrgIdentity 
@@ -153,7 +145,7 @@ export default function EventCard({
       <div className="event-header">
         <div className="event-title-row">
           <h3>{title}</h3>
-          {renderStatusBadge()}
+          <StatusBadge status={eventStatus} />
         </div>
         <span className="event-time">
           {formatEventTime(startTime, endTime)}

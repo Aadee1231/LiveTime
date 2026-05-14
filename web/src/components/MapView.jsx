@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useEventModal } from '../contexts/EventModalContext';
 import { getEventStatus } from '../lib/eventUtils';
 import { useEffect, useRef } from 'react';
+import StatusBadge from './StatusBadge';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -85,21 +86,11 @@ function EventPopup({ event, attendanceData }) {
     openEventModal(event);
   };
 
-  const renderStatusBadge = () => {
-    if (eventStatus === 'live') {
-      return <span className="event-status-badge live">🔴 Live Now</span>;
-    }
-    if (eventStatus === 'soon') {
-      return <span className="event-status-badge soon">⏰ Starting Soon</span>;
-    }
-    return null;
-  };
-
   return (
     <div className="map-popup">
       <div className="popup-header">
         <h4>{event.title}</h4>
-        {renderStatusBadge()}
+        <StatusBadge status={eventStatus} />
       </div>
       {event.club_name && (
         <p style={{ margin: '0.25rem 0', fontSize: '0.8125rem', color: 'var(--primary)', fontWeight: 600 }}>

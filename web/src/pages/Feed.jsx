@@ -155,13 +155,19 @@ export default function Feed() {
       
       return (
         <div className="feed-empty-state">
-          <div className="empty-icon">🎪</div>
+          <div className="empty-icon">✨</div>
           <h3>No events happening today</h3>
           <p>
             {userInterests.length > 0 
-              ? `No ${interestText} events right now. Check back later or create your own!`
-              : 'Check back later or be the first to create an event!'}
+              ? `No ${interestText} events right now. Be the first to post one!`
+              : 'Be the first to create an event and get the campus buzzing!'}
           </p>
+          <button 
+            className="create-event-cta"
+            onClick={() => window.location.href = '/create'}
+          >
+            Create Event
+          </button>
         </div>
       );
     }
@@ -239,8 +245,8 @@ export default function Feed() {
     <div className="page feed-page">
       <div className="feed-header">
         <div className="feed-header-content">
-          <h1>Discover Events</h1>
-          <p className="feed-subtitle">Find what's happening on campus today</p>
+          <h1>Event Feed</h1>
+          <p className="feed-subtitle">Everything happening on campus today</p>
         </div>
       </div>
 
