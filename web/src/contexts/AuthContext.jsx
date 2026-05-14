@@ -64,26 +64,46 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let timeoutFired = false;
     
     const initAuth = async () => {
       console.log('[AuthContext] Starting auth initialization...');
       
       const timeoutId = setTimeout(() => {
-        console.error('[AuthContext] Session check timed out after 5 seconds!');
+        console.error('[AuthContext] Session check timed out after 10 seconds!');
+        timeoutFired = true;
         if (isMounted) {
           setUser(null);
           setProfile(null);
           setLoading(false);
         }
-      }, 5000);
+      }, 10000);
 
       try {
         console.log('[AuthContext] Calling supabase.auth.getSession()...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        let session = null;
+        let error = null;
+        
+        try {
+          const result = await supabase.auth.getSession();
+          session = result.data?.session;
+          error = result.error;
+        } catch (sessionError) {
+          console.warn('[AuthContext] Session fetch failed, trying getUser()...', sessionError);
+          const userResult = await supabase.auth.getUser();
+          if (userResult.data?.user) {
+            session = { user: userResult.data.user };
+          }
+          error = userResult.error;
+        }
         
         clearTimeout(timeoutId);
         
-        if (!isMounted) return;
+        if (!isMounted || timeoutFired) {
+          console.log('[AuthContext] Component unmounted or timeout fired, skipping state updates');
+          return;
+        }
         
         if (error) {
           console.error('[AuthContext] Error getting session:', error);
@@ -103,13 +123,13 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         clearTimeout(timeoutId);
         console.error('[AuthContext] Error initializing auth:', err);
-        if (isMounted) {
+        if (isMounted && !timeoutFired) {
           setUser(null);
           setProfile(null);
         }
       } finally {
         console.log('[AuthContext] Setting loading to false');
-        if (isMounted) {
+        if (isMounted && !timeoutFired) {
           setLoading(false);
         }
       }
