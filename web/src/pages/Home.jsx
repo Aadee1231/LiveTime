@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase';
 import EventCard from '../components/EventCard';
 import MapView from '../components/MapView';
 import { filterRelevantEvents, sortEventsByStatus, getEventStatus, searchEvents } from '../lib/eventUtils';
+import { useBatchEventAttendance } from '../hooks/useBatchEventAttendance';
+import { useAuth } from '../contexts/AuthContext';
 
 const FILTER_TABS = [
   { id: 'all', label: 'All', icon: '🎯' },
@@ -11,6 +13,7 @@ const FILTER_TABS = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +22,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mapCenter, setMapCenter] = useState(null);
   const [mapZoom, setMapZoom] = useState(null);
+
+  const eventIds = useMemo(() => events.map(e => e.id), [events]);
+  const { attendanceMap, loading: attendanceLoading, toggleAttendance } = useBatchEventAttendance(eventIds, user?.id);
 
   useEffect(() => {
     fetchEvents();
@@ -181,6 +187,8 @@ export default function Home() {
               onMarkerClick={handleMarkerClick}
               mapCenter={mapCenter}
               mapZoom={mapZoom}
+              attendanceMap={attendanceMap}
+              toggleAttendance={toggleAttendance}
             />
           )}
         </div>
@@ -240,6 +248,8 @@ export default function Home() {
                   imageUrl={event.image_url}
                   creatorProfile={event.creator}
                   variant="compact"
+                  attendanceData={attendanceMap[event.id]}
+                  onToggleAttendance={() => toggleAttendance(event.id)}
                 />
               </div>
             ))}

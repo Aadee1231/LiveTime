@@ -52,10 +52,11 @@ const createCustomIcon = (status, isSelected) => {
   });
 };
 
-function EventPopup({ event }) {
+function EventPopup({ event, attendanceData }) {
   const { user } = useAuth();
   const { openEventModal } = useEventModal();
-  const { attendeeCount } = useEventAttendance(event.id, user?.id);
+  const fallbackAttendance = useEventAttendance(event.id, user?.id);
+  const attendeeCount = attendanceData?.count ?? fallbackAttendance.attendeeCount;
   const eventStatus = getEventStatus(event.start_time, event.end_time);
 
   const formatEventTime = (startTime, endTime) => {
@@ -130,7 +131,7 @@ function MapController({ center, zoom }) {
   return null;
 }
 
-export default function MapView({ events, selectedEventId, onMarkerClick, mapCenter, mapZoom }) {
+export default function MapView({ events, selectedEventId, onMarkerClick, mapCenter, mapZoom, attendanceMap, toggleAttendance }) {
   const ncStateCenter = [35.7847, -78.6821];
   const markerRefs = useRef({});
 
@@ -184,7 +185,7 @@ export default function MapView({ events, selectedEventId, onMarkerClick, mapCen
             }}
           >
             <Popup>
-              <EventPopup event={event} />
+              <EventPopup event={event} attendanceData={attendanceMap?.[event.id]} />
             </Popup>
           </Marker>
         );

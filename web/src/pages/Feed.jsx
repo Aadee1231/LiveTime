@@ -9,6 +9,7 @@ import {
   searchEvents,
   filterEventsByCategory
 } from '../lib/eventUtils';
+import { useBatchEventAttendance } from '../hooks/useBatchEventAttendance';
 
 const TABS = [
   { id: 'all', label: 'All Events', icon: '🎯' },
@@ -28,7 +29,7 @@ const CATEGORIES = [
 ];
 
 export default function Feed() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const [allEvents, setAllEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,6 +37,9 @@ export default function Feed() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const eventIds = useMemo(() => allEvents.map(e => e.id), [allEvents]);
+  const { attendanceMap, loading: attendanceLoading, toggleAttendance } = useBatchEventAttendance(eventIds, user?.id);
 
   useEffect(() => {
     fetchEvents();
@@ -306,6 +310,8 @@ export default function Feed() {
               imageUrl={event.image_url}
               creatorProfile={event.creator}
               variant="feed"
+              attendanceData={attendanceMap[event.id]}
+              onToggleAttendance={() => toggleAttendance(event.id)}
             />
           ))}
         </div>

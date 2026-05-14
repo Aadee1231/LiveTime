@@ -37,11 +37,11 @@ export const AuthProvider = ({ children }) => {
       console.log('[AuthContext] Starting auth initialization...');
       
       const timeoutId = setTimeout(() => {
-        console.error('[AuthContext] Session check timed out after 10 seconds!');
+        console.error('[AuthContext] Session check timed out after 5 seconds!');
         setUser(null);
         setProfile(null);
         setLoading(false);
-      }, 10000);
+      }, 5000);
 
       try {
         console.log('[AuthContext] Calling supabase.auth.getSession()...');

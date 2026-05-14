@@ -16,14 +16,19 @@ export default function EventCard({
   clubName,
   imageUrl,
   creatorProfile,
-  variant = 'feed'
+  variant = 'feed',
+  attendanceData,
+  onToggleAttendance
 }) {
   const { user } = useAuth();
   const { openEventModal } = useEventModal();
-  const { attendees, isGoing, loading, toggleAttendance, attendeeCount } = useEventAttendance(
-    eventId,
-    user?.id
-  );
+  
+  const fallbackAttendance = useEventAttendance(eventId, user?.id);
+  
+  const attendees = attendanceData?.attendees ?? fallbackAttendance.attendees;
+  const isGoing = attendanceData?.isGoing ?? fallbackAttendance.isGoing;
+  const loading = attendanceData ? false : fallbackAttendance.loading;
+  const attendeeCount = attendanceData?.count ?? fallbackAttendance.attendeeCount;
 
   const eventStatus = getEventStatus(startTime, endTime);
 
@@ -95,7 +100,11 @@ export default function EventCard({
   };
 
   const handleAttendanceToggle = async () => {
-    await toggleAttendance();
+    if (onToggleAttendance) {
+      await onToggleAttendance();
+    } else {
+      await fallbackAttendance.toggleAttendance();
+    }
   };
 
   if (variant === 'compact') {
