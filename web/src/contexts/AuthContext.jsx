@@ -19,11 +19,17 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = async (userId) => {
     try {
       console.log('[AuthContext] Fetching profile for user:', userId);
-      const { data, error } = await supabase
-        .from('livetime_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      
+      const { data, error } = await Promise.race([
+        supabase
+          .from('livetime_profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 3000)
+        )
+      ]);
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -52,7 +58,7 @@ export const AuthProvider = ({ children }) => {
           }
         } else {
           console.error('[AuthContext] Profile fetch error:', error);
-          throw error;
+          setProfile(null);
         }
       } else {
         console.log('[AuthContext] Profile fetched successfully');
@@ -92,7 +98,19 @@ export const AuthProvider = ({ children }) => {
         setUser(session?.user ?? null);
         if (session?.user) {
           console.log('[AuthContext] Fetching profile for user:', session.user.id);
-          await fetchProfile(session.user.id);
+          
+          // Add timeout to prevent infinite loading
+          const profileTimeout = new Promise((resolve) => {
+            setTimeout(() => {
+              console.warn('[AuthContext] Profile fetch timeout - continuing anyway');
+              resolve();
+            }, 5000);
+          });
+          
+          await Promise.race([
+            fetchProfile(session.user.id),
+            profileTimeout
+          ]);
         }
         console.log('[AuthContext] Auth initialization complete');
         setLoading(false);
