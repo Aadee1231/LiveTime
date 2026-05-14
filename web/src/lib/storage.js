@@ -11,7 +11,7 @@ export async function uploadEventImage(file, userId) {
     const filePath = `${userId}/${fileName}`;
 
     const { data, error } = await supabase.storage
-      .from('event-images')
+      .from('livetime-event-images')
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
@@ -22,7 +22,7 @@ export async function uploadEventImage(file, userId) {
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('event-images')
+      .from('livetime-event-images')
       .getPublicUrl(filePath);
 
     return {
@@ -42,7 +42,7 @@ export async function uploadEventImage(file, userId) {
 export async function deleteEventImage(filePath) {
   try {
     const { error } = await supabase.storage
-      .from('event-images')
+      .from('livetime-event-images')
       .remove([filePath]);
 
     if (error) {

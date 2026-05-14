@@ -28,7 +28,7 @@ export default function Onboarding() {
     try {
       setLoading(true);
       await supabase
-        .from('profiles')
+        .from('livetime_profiles')
         .update({ onboarding_completed: true })
         .eq('id', user.id);
       
@@ -70,7 +70,7 @@ export default function Onboarding() {
       setError('');
 
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('livetime_profiles')
         .update({
           onboarding_completed: true,
           interests: selectedInterests,

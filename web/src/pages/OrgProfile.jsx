@@ -25,7 +25,7 @@ export default function OrgProfile() {
       setError('');
 
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+        .from('livetime_profiles')
         .select('*')
         .eq('org_username', username)
         .eq('account_type', 'organization')
@@ -43,10 +43,10 @@ export default function OrgProfile() {
 
       const now = new Date().toISOString();
       const { data: eventsData, error: eventsError } = await supabase
-        .from('events')
+        .from('livetime_events')
         .select(`
           *,
-          creator:profiles!creator_id (
+          creator:livetime_profiles!creator_id (
             id,
             account_type,
             org_name,

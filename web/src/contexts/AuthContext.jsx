@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('[AuthContext] Fetching profile for user:', userId);
       const { data, error } = await supabase
-        .from('profiles')
+        .from('livetime_profiles')
         .select('*')
         .eq('id', userId)
         .single();
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
         if (error.code === 'PGRST116') {
           console.log('[AuthContext] Profile not found, creating basic profile...');
           const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
+            .from('livetime_profiles')
             .insert({
               id: userId,
               interests: [],
@@ -64,44 +64,35 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let isMounted = true;
-    let timeoutFired = false;
     
     const initAuth = async () => {
       console.log('[AuthContext] Starting auth initialization...');
       
-      const timeoutId = setTimeout(() => {
-        console.error('[AuthContext] Session check timed out after 10 seconds!');
-        timeoutFired = true;
-        if (isMounted) {
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-        }
-      }, 10000);
-
       try {
         console.log('[AuthContext] Calling supabase.auth.getSession()...');
         
-        let session = null;
-        let error = null;
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Session check timeout')), 6000);
+        });
         
-        try {
-          const result = await supabase.auth.getSession();
-          session = result.data?.session;
-          error = result.error;
-        } catch (sessionError) {
-          console.warn('[AuthContext] Session fetch failed, trying getUser()...', sessionError);
-          const userResult = await supabase.auth.getUser();
-          if (userResult.data?.user) {
-            session = { user: userResult.data.user };
+        const sessionPromise = (async () => {
+          try {
+            const result = await supabase.auth.getSession();
+            return { session: result.data?.session, error: result.error };
+          } catch (sessionError) {
+            console.warn('[AuthContext] Session fetch failed, trying getUser()...', sessionError);
+            const userResult = await supabase.auth.getUser();
+            if (userResult.data?.user) {
+              return { session: { user: userResult.data.user }, error: null };
+            }
+            return { session: null, error: userResult.error };
           }
-          error = userResult.error;
-        }
+        })();
         
-        clearTimeout(timeoutId);
+        const { session, error } = await Promise.race([sessionPromise, timeoutPromise]);
         
-        if (!isMounted || timeoutFired) {
-          console.log('[AuthContext] Component unmounted or timeout fired, skipping state updates');
+        if (!isMounted) {
+          console.log('[AuthContext] Component unmounted, skipping state updates');
           return;
         }
         
@@ -120,16 +111,12 @@ export const AuthProvider = ({ children }) => {
           await fetchProfile(session.user.id);
         }
         console.log('[AuthContext] Auth initialization complete');
+        setLoading(false);
       } catch (err) {
-        clearTimeout(timeoutId);
         console.error('[AuthContext] Error initializing auth:', err);
-        if (isMounted && !timeoutFired) {
+        if (isMounted) {
           setUser(null);
           setProfile(null);
-        }
-      } finally {
-        console.log('[AuthContext] Setting loading to false');
-        if (isMounted && !timeoutFired) {
           setLoading(false);
         }
       }

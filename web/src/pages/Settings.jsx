@@ -33,7 +33,7 @@ export default function Settings() {
       setSuccess('');
 
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('livetime_profiles')
         .update({
           interests: selectedInterests,
           preferences: preferences

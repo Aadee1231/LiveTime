@@ -34,7 +34,7 @@ export default function Profile() {
 
       const [createdEventsResult, attendingEventsResult] = await Promise.all([
         supabase
-          .from('events')
+          .from('livetime_events')
           .select('*')
           .eq('creator_id', user.id)
           .order('start_time', { ascending: false }),
@@ -121,7 +121,7 @@ export default function Profile() {
       setDeletingEventId(eventToDelete.id);
       
       const { error } = await supabase
-        .from('events')
+        .from('livetime_events')
         .delete()
         .eq('id', eventToDelete.id);
 

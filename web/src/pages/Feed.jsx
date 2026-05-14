@@ -59,10 +59,10 @@ export default function Feed() {
       console.log('[Feed] Time range:', { start: now.toISOString(), end: endOfToday.toISOString() });
       
       const { data, error: fetchError } = await supabase
-        .from('events')
+        .from('livetime_events')
         .select(`
           *,
-          creator:profiles!creator_id (
+          creator:livetime_profiles!creator_id (
             id,
             account_type,
             org_name,

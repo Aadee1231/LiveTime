@@ -40,11 +40,11 @@ export default function Home() {
       const fourHoursFromNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
 
       console.log('[Home] Querying Supabase for events...');
-      const { data, error: fetchError } = await supabase
-        .from('events')
+      const { data, error: fetchError} = await supabase
+        .from('livetime_events')
         .select(`
           *,
-          creator:profiles!creator_id (
+          creator:livetime_profiles!creator_id (
             id,
             account_type,
             org_name,

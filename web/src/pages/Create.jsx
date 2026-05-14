@@ -182,7 +182,7 @@ export default function Create() {
       eventData.free_food = formData.free_food;
 
       const { data: insertData, error: insertError } = await supabase
-        .from('events')
+        .from('livetime_events')
         .insert(eventData)
         .select()
         .single();
